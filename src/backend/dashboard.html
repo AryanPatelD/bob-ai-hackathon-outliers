@@ -612,6 +612,77 @@ async function loadGridRisk() {
   }
 }
 
+/* ── Anomaly table pager state ───────────────────────────────────────── */
+let anomalyRows = [];
+let anomalyPage = 0;
+const ANOMALY_PAGE_SIZE_DEFAULT = 5;
+
+function renderAnomalyTable() {
+  const container = document.getElementById('anomaly-table');
+  const perPageSel = document.getElementById('anomaly-per-page');
+  const pageSize   = perPageSel ? parseInt(perPageSel.value, 10) : ANOMALY_PAGE_SIZE_DEFAULT;
+  const total      = anomalyRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (anomalyPage >= totalPages) anomalyPage = totalPages - 1;
+  if (anomalyPage < 0) anomalyPage = 0;
+
+  const start = anomalyPage * pageSize;
+  const slice = anomalyRows.slice(start, start + pageSize);
+
+  let tblHtml = `<table class="tbl"><thead><tr>
+    <th>Asset</th><th>Type</th><th>Actual (MW)</th><th>Expected (MW)</th><th>Deviation (MW)</th><th>Perf Ratio</th><th>Severity</th>
+  </tr></thead><tbody>`;
+  if (slice.length === 0) {
+    tblHtml += `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px 0;">No anomaly records.</td></tr>`;
+  } else {
+    slice.forEach(a => {
+      tblHtml += `<tr>
+        <td>${a.asset_name}</td>
+        <td>${a.asset_type}</td>
+        <td>${fmt(a.actual_generation_mw)}</td>
+        <td>${fmt(a.expected_generation_mw)}</td>
+        <td style="color:${a.absolute_deviation_mw < -2 ? 'var(--red)' : 'inherit'}">${fmt(a.absolute_deviation_mw)}</td>
+        <td>${fmt(a.performance_ratio, 3)}</td>
+        <td>${riskBadge(a.severity)}</td>
+      </tr>`;
+    });
+  }
+  tblHtml += '</tbody></table>';
+
+  // Pager controls
+  const from = total === 0 ? 0 : start + 1;
+  const to   = Math.min(start + pageSize, total);
+  tblHtml += `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px;flex-wrap:wrap;">
+      <div style="font-size:12px;color:var(--muted);">
+        Showing <strong style="color:var(--text)">${from}–${to}</strong> of <strong style="color:var(--text)">${total}</strong> records
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-size:12px;color:var(--muted);">Rows:</label>
+        <select id="anomaly-per-page" onchange="anomalyPage=0;renderAnomalyTable()"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;">
+          <option value="5"  ${pageSize===5  ? 'selected':''}>5</option>
+          <option value="10" ${pageSize===10 ? 'selected':''}>10</option>
+          <option value="25" ${pageSize===25 ? 'selected':''}>25</option>
+          <option value="50" ${pageSize===50 ? 'selected':''}>50</option>
+        </select>
+        <button onclick="anomalyPage--;renderAnomalyTable()" ${anomalyPage===0?'disabled':''}
+          style="background:var(--surface2);border:1px solid var(--border);color:${anomalyPage===0?'var(--muted)':'var(--text)'};padding:4px 11px;border-radius:6px;cursor:${anomalyPage===0?'not-allowed':'pointer'};font-size:13px;font-family:inherit;">
+          &#8592;
+        </button>
+        <span style="font-size:12px;color:var(--muted);min-width:64px;text-align:center;">
+          Page ${anomalyPage + 1} / ${totalPages}
+        </span>
+        <button onclick="anomalyPage++;renderAnomalyTable()" ${anomalyPage>=totalPages-1?'disabled':''}
+          style="background:var(--surface2);border:1px solid var(--border);color:${anomalyPage>=totalPages-1?'var(--muted)':'var(--text)'};padding:4px 11px;border-radius:6px;cursor:${anomalyPage>=totalPages-1?'not-allowed':'pointer'};font-size:13px;font-family:inherit;">
+          &#8594;
+        </button>
+      </div>
+    </div>`;
+
+  container.innerHTML = tblHtml;
+}
+
 /* ── Renewable Performance ───────────────────────────────────────────── */
 async function loadRenewablePerf() {
   try {
@@ -650,23 +721,10 @@ async function loadRenewablePerf() {
     });
     document.getElementById('asset-cards').innerHTML = cardsHtml;
 
-    // Anomaly table
-    let tblHtml = `<table class="tbl"><thead><tr>
-      <th>Asset</th><th>Type</th><th>Actual (MW)</th><th>Expected (MW)</th><th>Deviation (MW)</th><th>Perf Ratio</th><th>Severity</th>
-    </tr></thead><tbody>`;
-    anomalies.anomalies.forEach(a => {
-      tblHtml += `<tr>
-        <td>${a.asset_name}</td>
-        <td>${a.asset_type}</td>
-        <td>${fmt(a.actual_generation_mw)}</td>
-        <td>${fmt(a.expected_generation_mw)}</td>
-        <td style="color:${a.absolute_deviation_mw < -2 ? 'var(--red)' : 'inherit'}">${fmt(a.absolute_deviation_mw)}</td>
-        <td>${fmt(a.performance_ratio, 3)}</td>
-        <td>${riskBadge(a.severity)}</td>
-      </tr>`;
-    });
-    tblHtml += '</tbody></table>';
-    document.getElementById('anomaly-table').innerHTML = tblHtml;
+    // Anomaly table — paged
+    anomalyRows = anomalies.anomalies;
+    anomalyPage = 0;
+    renderAnomalyTable();
   } catch (e) {
     document.getElementById('asset-cards').innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
@@ -837,75 +895,107 @@ const SUGGESTED = [
   "Run scenario B — demand spike analysis",
 ];
 
-// Bob calls the GridWise backend tools directly (REST simulation)
-// In a real deployment, Bob would call via the MCP server.
-// Here we simulate Bob by routing to the correct API endpoint.
+// Bob calls the /api/v1 endpoints — real computed data, no fabricated numbers.
 const BOB_TOOL_MAP = {
-  "grid risks": () => apiFetch('/grid/risk?horizon_hours=6').then(d => formatRiskResult(d)),
-  "risk": () => apiFetch('/grid/risk?horizon_hours=6').then(d => formatRiskResult(d)),
-  "underperform": () => apiFetch('/assets/anomalies?hours=24&severity=WARNING').then(d => formatAnomalyResult(d)),
-  "anomal": () => apiFetch('/assets/anomalies?hours=24').then(d => formatAnomalyResult(d)),
-  "curtailment": () => apiFetch('/optimisation/curtailment').then(d => formatCurtailmentResult(d)),
-  "brief": () => apiFetch('/brief').then(d => d.full_text),
-  "optimis": () => apiFetch('/optimisation/plan').then(d => formatOptResult(d)),
-  "forecast": () => apiFetch('/forecast/load').then(d => formatForecastResult(d)),
-  "sol-01": () => apiFetch('/assets/SOL-01/diagnosis').then(d => formatDiagResult(d)),
-  "sol-02": () => apiFetch('/assets/SOL-02/diagnosis').then(d => formatDiagResult(d)),
-  "win-01": () => apiFetch('/assets/WIN-01/diagnosis').then(d => formatDiagResult(d)),
-  "scenario b": () => apiFetch('/optimisation/plan?scenario=B').then(d => formatOptResult(d)),
-  "scenario c": () => apiFetch('/optimisation/curtailment?scenario=C').then(d => formatCurtailmentResult(d)),
-  "demand peak": () => apiFetch('/optimisation/plan').then(d => formatOptResult(d)),
-  "peak": () => apiFetch('/forecast/load').then(d => formatForecastResult(d)),
+  "grid risks":   () => apiFetch('/api/v1/grid/risks?horizon_hours=6').then(d => formatRiskResult(d)),
+  "risk":         () => apiFetch('/api/v1/grid/risks?horizon_hours=6').then(d => formatRiskResult(d)),
+  "grid status":  () => apiFetch('/api/v1/grid/status').then(d => formatGridStatus(d)),
+  "status":       () => apiFetch('/api/v1/grid/status').then(d => formatGridStatus(d)),
+  "underperform": () => apiFetch('/api/v1/assets/anomalies?hours=24&severity=WARNING').then(d => formatAnomalyResult(d)),
+  "anomal":       () => apiFetch('/api/v1/assets/anomalies?hours=24').then(d => formatAnomalyResult(d)),
+  "curtailment":  () => apiFetch('/api/v1/curtailment/plan').then(d => formatCurtailmentResult(d)),
+  "brief":        () => apiFetch('/api/v1/advisor/brief?scenario=live').then(d => d.full_text),
+  "optimis":      () => apiFetch('/api/v1/optimisation/plan').then(d => formatOptResult(d)),
+  "forecast":     () => apiFetch('/api/v1/forecast/load').then(d => formatForecastResult(d)),
+  "renewable":    () => apiFetch('/api/v1/forecast/renewables').then(d => formatRenewableResult(d)),
+  "solar":        () => apiFetch('/api/v1/forecast/renewables?asset_type=solar').then(d => formatRenewableResult(d)),
+  "wind":         () => apiFetch('/api/v1/forecast/renewables?asset_type=wind').then(d => formatRenewableResult(d)),
+  "sol-01":       () => apiFetch('/api/v1/assets/SOL-01/diagnosis').then(d => formatDiagResult(d)),
+  "sol-02":       () => apiFetch('/api/v1/assets/SOL-02/diagnosis').then(d => formatDiagResult(d)),
+  "sol-03":       () => apiFetch('/api/v1/assets/SOL-03/diagnosis').then(d => formatDiagResult(d)),
+  "win-01":       () => apiFetch('/api/v1/assets/WIN-01/diagnosis').then(d => formatDiagResult(d)),
+  "win-02":       () => apiFetch('/api/v1/assets/WIN-02/diagnosis').then(d => formatDiagResult(d)),
+  "scenario a":   () => apiFetch('/api/v1/advisor/brief?scenario=A').then(d => d.full_text),
+  "scenario b":   () => apiFetch('/api/v1/optimisation/plan?scenario=B').then(d => formatOptResult(d)),
+  "scenario c":   () => apiFetch('/api/v1/curtailment/plan?scenario=C').then(d => formatCurtailmentResult(d)),
+  "demand peak":  () => apiFetch('/api/v1/optimisation/plan').then(d => formatOptResult(d)),
+  "peak":         () => apiFetch('/api/v1/forecast/load').then(d => formatForecastResult(d)),
 };
 
+function formatGridStatus(d) {
+  return `[MEASURED] Grid Status:\n  Current load    : ${fmt(d.current_load_mw, 0)} MW\n  Forecast (next) : ${fmt(d.forecast_load_mw, 0)} MW\n  24h peak        : ${fmt(d.forecast_peak_mw, 0)} MW at ${d.peak_time}\n  Available cap   : ${fmt(d.available_capacity_mw, 0)} MW\n  Reserve margin  : ${fmt(d.reserve_margin_percent, 1)}%\n  Risk level      : ${d.risk_level}`;
+}
 function formatRiskResult(d) {
-  const rows = d.risk_summary;
-  const crit = rows.filter(r => r.risk_level === 'CRITICAL').length;
-  const high = rows.filter(r => r.risk_level === 'HIGH').length;
-  let out = `[RULE-BASED ANALYSIS] Grid Risk — next ${rows.length} hours:\n`;
-  out += `  Critical periods: ${crit}\n  High risk periods: ${high}\n\n`;
+  const rows = d.risks || d.risk_summary || [];
+  const crit = d.critical_periods ?? rows.filter(r => r.risk_level === 'CRITICAL').length;
+  const high = d.high_risk_periods ?? rows.filter(r => r.risk_level === 'HIGH').length;
+  let out = `[RULE-BASED] Grid Risk — next ${rows.length} hours:\n`;
+  out += `  Critical periods : ${crit}\n  High risk periods: ${high}\n\n`;
   rows.slice(0, 8).forEach(r => {
     const h = new Date(r.timestamp).getUTCHours().toString().padStart(2,'0');
-    out += `  ${h}:00  [${r.risk_level}]  ${fmt(r.forecast_load_mw,0)} MW  reserve ${fmt(r.reserve_margin*100,1)}%\n`;
+    const rm = r.reserve_margin_percent ?? (r.reserve_margin * 100);
+    out += `  ${h}:00  [${r.risk_level}]  ${fmt(r.forecast_load_mw,0)} MW  reserve ${fmt(rm,1)}%\n`;
   });
+  if (rows.length > 8) out += `  ... and ${rows.length - 8} more hours\n`;
   return out;
 }
 function formatAnomalyResult(d) {
   let out = `[ANOMALY DETECTION] ${d.total_assets} assets analysed:\n  Critical: ${d.assets_in_critical}  Warning: ${d.assets_in_warning}\n\n`;
-  d.anomalies.slice(0, 6).forEach(a => {
+  (d.anomalies || []).slice(0, 6).forEach(a => {
     out += `  [${a.severity}] ${a.asset_name}: actual ${fmt(a.actual_generation_mw)} MW vs expected ${fmt(a.expected_generation_mw)} MW (PR: ${fmt(a.performance_ratio,2)})\n`;
   });
   return out;
 }
 function formatCurtailmentResult(d) {
   const s = d.summary;
-  return `[CURTAILMENT ANALYSIS]\n  Potential: ${s.total_potential_curtailment_mwh} MWh\n  BESS absorbed: ${s.total_bess_absorption_mwh} MWh\n  Avoided: ${s.total_avoided_curtailment_mwh} MWh\n  Reduction: ${s.curtailment_reduction_pct}%\n\n${d.explanation}`;
+  return `[CURTAILMENT ANALYSIS] ${d.scenario || ''}\n  Potential : ${fmt(s.total_potential_curtailment_mwh)} MWh\n  BESS abs  : ${fmt(s.total_bess_absorption_mwh)} MWh\n  Avoided   : ${fmt(s.total_avoided_curtailment_mwh)} MWh\n  Reduction : ${fmt(s.curtailment_reduction_pct, 1)}%\n\n${d.explanation || ''}`;
 }
 function formatOptResult(d) {
   const s = d.summary;
-  let out = `[OPTIMISATION PLAN] ${s.scenario_name || 'Live'}\n  Deficit periods: ${s.deficit_periods}  Surplus: ${s.surplus_periods}\n  BESS discharge: ${s.total_bess_discharge_mwh} MWh  Charge: ${s.total_bess_charge_mwh} MWh\n  Backup required: ${s.backup_required ? 'YES ⚠️' : 'NO'}\n\nActions (first 8h):\n`;
-  d.results.slice(0,8).forEach(r => {
+  const rows = d.results || d.intervals || [];
+  let out = `[OPTIMISATION] ${s.scenario_name || d.scenario || 'Live'}\n  Deficit periods : ${s.deficit_periods}  Surplus: ${s.surplus_periods}\n  BESS discharge  : ${fmt(s.total_bess_discharge_mwh)} MWh  Charge: ${fmt(s.total_bess_charge_mwh)} MWh\n  Backup required : ${s.backup_required ? 'YES' : 'NO'}\n\nActions (first 8h):\n`;
+  rows.slice(0,8).forEach(r => {
     const h = new Date(r.timestamp).getUTCHours().toString().padStart(2,'0');
-    out += `  ${h}:00  net ${fmt(r.net_balance_mw,0)} MW  →  ${r.action_taken}\n`;
+    const nb = r.net_balance_mw ?? r.net_balance_mw;
+    out += `  ${h}:00  net ${fmt(nb,0)} MW  →  ${r.action_taken || ''}\n`;
   });
   return out;
 }
 function formatForecastResult(d) {
-  const loads = d.forecast.map(p => p.forecast_load_mw);
+  const loads = (d.forecast || []).map(p => p.forecast_load_mw);
+  if (!loads.length) return '[ML FORECAST] No forecast data.';
   const peak = Math.max(...loads);
   const avg = loads.reduce((a,b)=>a+b,0)/loads.length;
   const peakH = d.forecast[loads.indexOf(peak)];
-  let out = `[ML FORECAST] 24h Load Forecast:\n  Peak: ${fmt(peak,0)} MW at ${peakH?.timestamp}\n  Average: ${fmt(avg,0)} MW\n`;
-  if (d.model_metrics?.test) out += `  Model R² (test): ${fmt(d.model_metrics.test.r2,3)}\n`;
+  let out = `[ML FORECAST] 24h Load Forecast:\n  Peak    : ${fmt(peak,0)} MW at ${peakH?.timestamp}\n  Average : ${fmt(avg,0)} MW\n`;
+  if (d.model_metrics?.test) out += `  R² (test): ${fmt(d.model_metrics.test.r2,3)}\n`;
+  return out;
+}
+function formatRenewableResult(d) {
+  const fc = d.forecasts || [];
+  if (!fc.length) return '[RENEWABLE FORECAST] No data.';
+  const solar = fc.filter(p => p.asset_type === 'solar');
+  const wind = fc.filter(p => p.asset_type === 'wind');
+  const sumSolar = solar.reduce((a,b) => a + b.expected_generation_mw, 0);
+  const sumWind = wind.reduce((a,b) => a + b.expected_generation_mw, 0);
+  const assetIds = [...new Set(fc.map(p => p.asset_id))];
+  let out = `[PHYSICS MODEL] Renewable Forecast (${assetIds.length} assets):\n`;
+  out += `  Total solar expected : ${fmt(sumSolar/Math.max(solar.length/assetIds.length,1),1)} MW avg\n`;
+  out += `  Total wind expected  : ${fmt(sumWind/Math.max(wind.length/assetIds.length,1),1)} MW avg\n`;
   return out;
 }
 function formatDiagResult(d) {
-  let out = `[RCA] ${d.asset_name} (${d.asset_type}):\n  Expected: ${d.expected_generation_mw} MW  Actual: ${d.actual_generation_mw} MW\n  Unexplained loss: ${d.unexplained_loss_mw} MW\n  Inspection recommended: ${d.recommended_inspection ? 'YES' : 'NO'}\n\nProbable causes:\n`;
-  d.probable_causes.forEach(c => { out += `  [${(c.confidence*100).toFixed(0)}%] ${c.cause}: ${c.description}\n`; });
+  let out = `[RCA] ${d.asset_name || d.asset_id} (${d.asset_type}):\n  Expected        : ${fmt(d.expected_generation_mw)} MW\n  Actual          : ${fmt(d.actual_generation_mw)} MW\n  Unexplained loss: ${fmt(d.unexplained_loss_mw)} MW\n  Inspection      : ${d.recommended_inspection ? 'RECOMMENDED' : 'Not required'}\n`;
+  if (d.weather_conditions) {
+    const w = d.weather_conditions;
+    out += `  Weather         : ${fmt(w.temperature,1)}°C  cloud ${fmt(w.cloud_cover,0)}%  irradiance ${fmt(w.irradiance,0)} W/m²  wind ${fmt(w.wind_speed,1)} m/s\n`;
+  }
+  out += `\nProbable causes:\n`;
+  (d.probable_causes || []).forEach(c => { out += `  [${(c.confidence*100).toFixed(0)}%] ${c.cause}: ${c.description}\n`; });
   return out;
 }
 
-function initBobAdvisor() {
+async function initBobAdvisor() {
   const sq = document.getElementById('suggested-queries');
   sq.innerHTML = '';
   SUGGESTED.forEach(q => {
@@ -914,7 +1004,38 @@ function initBobAdvisor() {
     btn.onclick = () => { document.getElementById('bob-input').value = q; sendBobQuery(); };
     sq.appendChild(btn);
   });
-  appendBobMsg('bob', 'Hello, Operator. I am your GridWise AI Advisor.\n\nI can answer questions about grid status, demand forecasts, renewable asset health, optimisation plans, and curtailment.\n\nAll data comes from the GridWise backend — I never fabricate numbers.\n\nTry one of the suggested queries, or type your own question.');
+
+  // Show welcome + live snapshot
+  const welcome = appendBobMsg('bob', 'Hello, Operator. I am your GridWise AI Advisor.\n\nFetching live grid status…');
+  welcome.classList.add('msg-loading');
+
+  try {
+    const [status, anomalies] = await Promise.all([
+      apiFetch('/api/v1/grid/status'),
+      apiFetch('/api/v1/assets/anomalies?hours=24'),
+    ]);
+
+    const warn  = anomalies.assets_in_warning ?? 0;
+    const critA = anomalies.assets_in_critical ?? 0;
+
+    let snap = 'Hello, Operator. Here is your live grid snapshot:\n\n';
+    snap += `[MEASURED]  Current demand : ${fmt(status.current_load_mw, 0)} MW\n`;
+    snap += `[ML]        24h peak load  : ${fmt(status.forecast_peak_mw, 0)} MW\n`;
+    snap += `[MEASURED]  Reserve margin : ${fmt(status.reserve_margin_percent, 1)}%\n`;
+    snap += `[RULE]      Current risk   : ${status.risk_level}\n`;
+    snap += `[ANOMALY]   Assets in warning : ${warn}   Critical: ${critA}\n`;
+    snap += '\nAll data comes from the /api/v1 endpoints — I never fabricate numbers.\n';
+    snap += '\nTry one of the suggested queries, or type your own question.';
+
+    welcome.textContent = snap;
+    welcome.classList.remove('msg-loading');
+  } catch (e) {
+    welcome.textContent = 'Hello, Operator. I am your GridWise AI Advisor.\n\nI can answer questions about grid status, demand forecasts, renewable asset health, optimisation plans, and curtailment.\n\nAll data comes from the GridWise backend — I never fabricate numbers.\n\nTry one of the suggested queries, or type your own question.';
+    welcome.classList.remove('msg-loading');
+  }
+
+  // Auto-load the Live Brief
+  loadBrief(null);
 }
 
 function appendBobMsg(role, text) {
@@ -945,8 +1066,8 @@ async function sendBobQuery() {
       if (qLower.includes(key)) { handler = fn; break; }
     }
     if (!handler) {
-      // Default: try brief
-      handler = () => apiFetch('/brief').then(d => d.full_text.substring(0, 2000) + '\n[... truncated — use "Generate operator brief" for full output]');
+      // Default: fetch brief from /api/v1
+          handler = () => apiFetch('/api/v1/advisor/brief?scenario=live').then(d => (d.full_text || '').substring(0, 2000) + '\n[... truncated — use "Generate operator brief" for full output]');
     }
     const result = await handler();
     loading.textContent = result;
@@ -967,11 +1088,13 @@ async function loadBrief(scenario) {
   const el = document.getElementById('brief-text');
   el.textContent = 'Generating brief…';
   try {
-    const path = scenario ? `/brief?scenario=${scenario}` : '/brief';
+    // Map button values to /api/v1/advisor/brief scenario param
+    const sc = scenario ? scenario.toUpperCase() : 'live';
+    const path = `/api/v1/advisor/brief?scenario=${sc}`;
     const data = await apiFetch(path);
-    el.textContent = data.full_text;
+    el.textContent = data.full_text || JSON.stringify(data, null, 2);
   } catch (e) {
-    el.textContent = 'Error: ' + e.message;
+    el.textContent = 'Could not load brief: ' + e.message + '\n\nEnsure the backend is running: uvicorn src.backend.main:app --port 8000';
   }
 }
 

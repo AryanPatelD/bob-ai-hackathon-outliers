@@ -73,6 +73,10 @@ app.add_middleware(
 from src.backend.routes_phase2 import router as phase2_router  # noqa: E402
 app.include_router(phase2_router)
 
+# API v1 routes
+from src.backend.routes_api_v1 import router as api_v1_router  # noqa: E402
+app.include_router(api_v1_router)
+
 
 # ---------------------------------------------------------------------------
 # Health

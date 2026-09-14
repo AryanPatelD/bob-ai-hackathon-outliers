@@ -1,211 +1,853 @@
-# GridWise AI — Grid Load Optimisation & Renewable Energy Performance Advisor
+# ⚡ GridWise AI
+## Grid Load Optimisation & Renewable Energy Performance Advisor
 
-> **WARNING: All data in this project is SYNTHETIC / DEMO data — not real grid or weather telemetry.**
+> **IBM Bob AI Innovation Hackathon 2026 · Team Outliers · Problem Statement U2**
+
+> ⚠️ **Prototype Data Notice:** The current implementation uses SYNTHETIC / DEMO grid, weather, and renewable-asset data. Values shown by the prototype must not be interpreted as live utility, SCADA, or weather telemetry.
 
 ---
 
-## Team
+## 👥 Team Outliers
 
-| Field | Value |
+| Role | Member |
 |---|---|
-| **Team Name** | Outliers |
-| **Track** | AI |
-| **Team Lead** | Aryan Vyas — aryan.vyas@ibm.com |
-| **Members** | Aryan Vyas |
+| Team Lead | **Smit Bhalani** |
+| Member | **Chaitya Vakani** |
+| Member | **Aryan Patel** |
+| Member | **Vedant Bhatt** |
+
+**Problem Statement:** U2 — Grid Load Optimisation & Renewable Energy Performance Advisor
 
 ---
 
-## Problem Statement
+# 🎯 Problem Statement
 
-Grid operators face a multi-dimensional real-time challenge: they must simultaneously forecast electricity demand spikes, understand renewable generation availability, detect underperforming solar and wind assets, identify root causes of underperformance, and minimise renewable curtailment — all under operational pressure and within response windows measured in minutes.
+The US curtailed **~8 TWh of clean energy in 2023** — renewable electricity was switched off because the grid could not absorb it.
 
-No existing single tool integrates all these tasks with conversational AI assistance in one operator interface, forcing operators to switch between disconnected systems while the grid state changes.
+At the same time, unexpected demand spikes can cause grid instability.
 
----
+Grid operators therefore need to simultaneously:
 
-## Solution
+- forecast upcoming electricity-demand spikes,
+- balance variable renewable generation,
+- detect underperforming solar and wind assets,
+- identify why those assets are underperforming,
+- determine appropriate grid-balancing actions, and
+- minimise unnecessary renewable curtailment.
 
-GridWise AI is a full-stack analytics and optimisation platform that chains:
-- **XGBoost demand forecasting** → **physics-based renewable models** → **deterministic anomaly detection** → **evidence-based root cause analysis** → **priority-order BESS/demand-response optimisation** → **IBM Bob conversational interface**
+Today, these decisions are often supported by separate tools rather than one integrated operator intelligence workflow.
 
-IBM Bob is integrated via a custom MCP server exposing nine backend analytics tools. Operators can ask natural-language questions and receive structured, computed answers — Bob retrieves real calculated results and never fabricates telemetry or measurements.
+### U2 Challenge
 
----
-
-## Key Features
-
-- **XGBoost Load Forecasting**: 24-hour demand forecast trained on 8,760 hours of synthetic data. Chronological 70/15/15 split. Leakage-free lag features. Test R² = 0.90, MAE = 49 MW.
-- **Physics-Based Renewable Models**: Explainable solar (GHI × cloud transmissivity × temperature derating) and wind (cubic power curve + air density correction) generation models. Every intermediate step is returned for transparency.
-- **Evidence-Based Root Cause Analysis**: Separates weather-explained losses from unexplained losses. Correctly classifies heavy cloud cover as weather (not a fault). Returns confidence-scored causes. Never claims mechanical failure without evidence.
-- **Grid Optimisation Engine**: Priority-order dispatch: BESS discharge → demand response → backup generation for deficits; BESS charging → flexible load → export → curtailment for surplus. All BESS SOC and power constraints enforced.
-- **IBM Bob MCP Integration**: 9 MCP tools calling the FastAPI backend. Bob reads computed results — spike risks, anomalies, diagnoses, optimisation plans, operator briefs — and presents them with data-type labels (MEASURED / ML PREDICTION / RULE-BASED / AI EXPLANATION).
-- **Operator Dashboard**: 7-page dark-mode grid-operations dashboard. Overview, load forecast, grid risk, asset performance, asset diagnosis, grid optimisation, curtailment, and AI advisor pages.
-- **Reproducible Demo Scenarios**: A (normal), B (demand spike), C (renewable surplus + fault), D (combined spike + inverter fault for hackathon demo).
+> Build a Bob solution that forecasts demand spikes, recommends load-balancing actions, detects anomalies in renewable energy performance, identifies root causes per underperforming asset, and generates an integrated operator optimisation brief with a curtailment minimisation plan.
 
 ---
 
-## Architecture
+# 💡 Our Solution — GridWise AI
+
+**GridWise AI** is an AI-powered grid intelligence and operator decision-support platform designed specifically around the U2 challenge.
+
+It combines:
+
+**Load Forecasting → Demand Spike Detection → Renewable Performance Modelling → Anomaly Detection → Root Cause Analysis → Grid Optimisation → Curtailment Minimisation → IBM Bob Operator Advisor**
+
+into one integrated workflow.
+
+Instead of giving the operator only a prediction, GridWise AI answers three operational questions:
+
+### 1. What is going to happen?
+XGBoost forecasts electricity demand over the next 24 hours and identifies potential demand-spike periods.
+
+### 2. What is going wrong?
+Physics-based renewable models estimate expected solar/wind generation. Actual and expected output are compared to detect underperforming assets and identify probable root causes.
+
+### 3. What should the operator do?
+The optimisation engine recommends BESS dispatch, demand response, backup generation, flexible-load absorption, export, and finally unavoidable curtailment.
+
+IBM Bob then combines these computed results into an operator-ready optimisation brief.
+
+---
+
+# 🔥 Challenge → Solution Mapping
+
+| U2 Requirement | GridWise AI Implementation |
+|---|---|
+| Forecast demand spikes | XGBoost 24-hour load forecasting |
+| Detect dangerous periods | Reserve-margin spike detection |
+| Balance grid load | BESS + demand response + backup optimisation |
+| Detect renewable anomalies | Expected-vs-actual performance analysis |
+| Identify root cause | Evidence-based solar/wind RCA |
+| Reduce renewable curtailment | BESS → flexible load → export → curtailment |
+| Generate optimisation brief | Integrated `/api/v1/advisor/brief` |
+| Use IBM Bob | Custom MCP server exposing 9 backend tools |
+
+---
+
+# 🧠 End-to-End Intelligence Pipeline
+
+```text
+Synthetic Grid + Weather + Renewable Asset Data
+                       │
+                       ▼
+              XGBoost Load Forecast
+                       │
+                       ▼
+             Demand Spike Detection
+                       │
+                       ▼
+        Solar / Wind Expected Generation
+                       │
+                       ▼
+            Expected vs Actual Output
+                       │
+                       ▼
+                Anomaly Detection
+                       │
+                       ▼
+          Evidence-Based Root Cause
+                       │
+                       ▼
+             Grid Optimisation Engine
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+      Load Balancing       Curtailment Plan
+             │                   │
+             └─────────┬─────────┘
+                       ▼
+                FastAPI /api/v1
+                       │
+             ┌─────────┴──────────┐
+             ▼                    ▼
+      Operator Dashboard      IBM Bob MCP
+                                  │
+                                  ▼
+                       Operator Optimisation Brief
+```
+
+---
+
+# 🚀 Core Features
+
+## 1. 24-Hour Load Forecasting
+
+GridWise AI uses **XGBoost** to forecast grid electricity demand.
+
+Current prototype:
+
+- 8,760 hourly synthetic observations
+- chronological `70 / 15 / 15` train-validation-test split
+- lag features
+- rolling statistics
+- temperature and humidity
+- time-of-day features
+- day-of-week features
+- leakage-safe model construction
+
+### Current Model Results
+
+| Metric | Test Result |
+|---|---:|
+| R² | **≈ 0.90** |
+| MAE | **≈ 49 MW** |
+| RMSE | **≈ 68 MW** |
+
+The forecast provides the input to the demand-spike detector.
+
+---
+
+# 🚨 Demand Spike Detection
+
+Forecast demand is compared against available grid capacity.
+
+The system calculates reserve margin and assigns:
+
+```text
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+This converts the ML forecast into an operational risk signal.
+
+Example:
+
+```text
+Forecast Demand      = 2,420 MW
+Available Capacity   = 2,600 MW
+
+Reserve              = 180 MW
+Reserve Margin       = 6.9%
+
+Risk                 = HIGH
+```
+
+---
+
+# ☀️ Solar Performance Intelligence
+
+Expected solar generation is estimated using physical conditions such as:
+
+- solar irradiance
+- cloud cover
+- temperature
+- time
+- plant capacity
+
+Conceptually:
+
+```text
+Expected Solar Power
+≈ Irradiance
+× Cloud Transmissivity
+× Temperature Derating
+× Plant Capacity
+```
+
+This provides an explainable expected-output baseline.
+
+---
+
+# 🌬️ Wind Performance Intelligence
+
+Expected wind generation considers:
+
+- wind speed
+- wind direction
+- temperature
+- turbine cut-in speed
+- rated speed
+- cut-out speed
+- installed capacity
+
+The model follows the physical relationship:
+
+```text
+Wind Power ∝ Wind Speed³
+```
+
+while respecting turbine operating limits.
+
+---
+
+# 🔎 Renewable Anomaly Detection
+
+GridWise AI compares:
+
+```text
+Expected Generation
+        vs
+Actual Generation
+```
+
+and calculates:
+
+```text
+Performance Ratio
+Absolute MW Deviation
+Percentage Deviation
+Severity
+```
+
+Assets are classified as:
+
+```text
+NORMAL
+WARNING
+CRITICAL
+```
+
+Nighttime solar and other low-expected-generation conditions are suppressed to reduce false alarms.
+
+---
+
+# 🧩 Evidence-Based Root Cause Analysis
+
+Detecting an anomaly is only the first step.
+
+GridWise AI attempts to determine **why** an asset is underperforming.
+
+The RCA engine separates:
+
+```text
+Total Generation Loss
+        │
+        ├── Weather-Explained Loss
+        │
+        └── Unexplained Asset-Side Loss
+```
+
+### Solar evidence
+
+The system considers:
+
+- high cloud cover
+- low irradiance
+- high-temperature derating
+- unexplained clear-sky generation loss
+- possible sensor/telemetry issue
+
+### Wind evidence
+
+The system considers:
+
+- insufficient wind
+- turbine cut-in conditions
+- rated operating region
+- excessive wind / cut-out conditions
+- unexplained generation loss
+- possible telemetry issue
+
+GridWise AI does **not** declare a mechanical failure without evidence.
+
+Instead it can return:
+
+```text
+Probable Cause:
+Unexplained asset-side underperformance
+
+Confidence:
+High
+
+Recommended Action:
+Inspect inverter/string availability and verify telemetry.
+```
+
+---
+
+# ⚙️ Grid Optimisation Engine
+
+When GridWise AI detects a power deficit, the optimiser prioritises:
+
+```text
+1. BESS Discharge
+       ↓
+2. Demand Response / Load Shifting
+       ↓
+3. Backup Generation
+```
+
+For renewable surplus:
+
+```text
+1. Charge BESS
+       ↓
+2. Flexible Load
+       ↓
+3. Export
+       ↓
+4. Curtailment — LAST RESORT
+```
+
+Battery constraints include:
+
+- State of Charge
+- maximum charge power
+- maximum discharge power
+- efficiency
+- interval-to-interval SOC continuity
+
+---
+
+# ♻️ Curtailment Minimisation
+
+GridWise AI explicitly calculates:
+
+```text
+Potential Curtailment
+        │
+        ├── BESS Absorption
+        ├── Flexible Load
+        ├── Export
+        │
+        ▼
+Unavoidable Curtailment
+```
+
+The system reports:
+
+- potential curtailment
+- BESS absorption
+- flexible-load absorption
+- export
+- unavoidable curtailment
+- avoided curtailment
+- curtailment reduction %
+
+This directly addresses the renewable-curtailment requirement in U2.
+
+---
+
+# 🤖 IBM Bob Integration
+
+IBM Bob is a core component of GridWise AI.
+
+A custom **MCP — Model Context Protocol** server exposes GridWise AI analytics to Bob.
+
+Bob does not generate operational numbers itself.
+
+Instead:
+
+```text
+Operator Question
+       ↓
+    IBM Bob
+       ↓
+   MCP Tool
+       ↓
+GridWise FastAPI
+       ↓
+Forecast / RCA / Optimisation
+       ↓
+Computed JSON
+       ↓
+    IBM Bob
+       ↓
+Operator Explanation
+```
+
+## 9 IBM Bob Tools
+
+| Bob Tool | GridWise API | Purpose |
+|---|---|---|
+| `get_grid_status` | `/api/v1/grid/status` | Current grid status |
+| `get_load_forecast` | `/api/v1/forecast/load` | 24h demand forecast |
+| `get_spike_risks` | `/api/v1/grid/risks` | Demand-spike periods |
+| `get_renewable_forecast` | `/api/v1/forecast/renewables` | Expected renewable output |
+| `get_asset_anomalies` | `/api/v1/assets/anomalies` | Underperforming assets |
+| `diagnose_asset` | `/api/v1/assets/{id}/diagnosis` | Root-cause analysis |
+| `get_optimisation_plan` | `/api/v1/optimisation/plan` | Grid balancing plan |
+| `get_curtailment_plan` | `/api/v1/curtailment/plan` | Curtailment plan |
+| `generate_operator_brief` | `/api/v1/advisor/brief` | Integrated operator brief |
+
+### Example Bob Queries
+
+```text
+"What are the grid risks over the next 6 hours?"
+
+"Which renewable assets are underperforming and why?"
+
+"Diagnose SOL-02."
+
+"What load-balancing actions should we take?"
+
+"How much renewable curtailment can we avoid?"
+
+"Generate the integrated optimisation brief for Scenario B."
+```
+
+Bob consumes calculated results instead of fabricating telemetry.
+
+---
+
+# 📋 Integrated Operator Brief
+
+The main operator intelligence endpoint is:
+
+```http
+GET /api/v1/advisor/brief
+```
+
+It combines:
+
+```text
+Grid Status
++
+Demand Forecast
++
+Spike Risks
++
+Renewable Status
++
+Asset Anomalies
++
+Root Causes
++
+Optimisation Plan
++
+Curtailment Plan
++
+Recommended Actions
++
+Known Uncertainties
+```
+
+into one structured briefing.
+
+Supported scenarios:
+
+```text
+/api/v1/advisor/brief?scenario=live
+/api/v1/advisor/brief?scenario=A
+/api/v1/advisor/brief?scenario=B
+/api/v1/advisor/brief?scenario=C
+```
+
+---
+
+# 🖥️ Operator Dashboard
+
+GridWise AI provides an operator-oriented dashboard containing:
+
+| Module | Purpose |
+|---|---|
+| Overview | Overall grid health and KPIs |
+| Load Forecast | 24h demand forecast |
+| Grid Risk | Spike-risk periods |
+| Renewable Performance | Solar/wind performance |
+| Asset Diagnosis | RCA and recommended inspections |
+| Grid Optimisation | BESS / DR / backup actions |
+| Curtailment | Renewable absorption and curtailment |
+| AI Advisor | IBM Bob + integrated operator brief |
+
+The AI Advisor automatically generates the **Live Brief** when the page loads.
+
+---
+
+# 🧪 Reproducible Demo Scenarios
+
+## Live
+
+Latest available synthetic/demo state.
+
+## Scenario A — Normal Operation
+
+```text
+Moderate Demand
+Healthy Renewable Assets
+Adequate Reserve
+```
+
+## Scenario B — Demand Spike
+
+```text
+Evening Demand Surge
+Reduced Renewable Contribution
+Limited Reserve
+BESS Dispatch Required
+```
+
+## Scenario C — Renewable Surplus + Asset Anomaly
+
+```text
+High Renewable Availability
+Solar Asset Underperformance
+BESS Near High SOC
+Curtailment Risk
+```
+
+## Scenario D — Combined Hackathon Demo
+
+Demonstrates both:
+
+```text
+Demand Spike
++
+Renewable Asset Underperformance
++
+Root Cause Analysis
++
+Grid Optimisation
++
+IBM Bob Brief
+```
+
+---
+
+# 🏗️ Architecture
 
 ```mermaid
 flowchart TD
-    A[Synthetic Data Generator] --> B[Parquet Data Store]
+    A[Synthetic Grid / Weather / Asset Data] --> B[Parquet Data Store]
+
     B --> C[XGBoost Load Forecaster]
     B --> D[Physics Renewable Models]
-    B --> E[Anomaly Detector]
-    C --> F[Spike Detection Engine]
-    D --> E
-    E --> G[Root Cause Analyser]
-    C --> H[Grid Optimisation Engine]
-    D --> H
-    F --> H
+
+    C --> E[Spike Detection]
+    D --> F[Expected Generation]
+
+    B --> G[Actual Generation]
+
+    F --> H[Anomaly Detection]
     G --> H
-    H --> I[Curtailment Minimiser]
-    H --> J[Operator Brief Generator]
+
+    H --> I[Root Cause Analysis]
+
+    C --> J[Grid Optimiser]
+    E --> J
+    F --> J
     I --> J
-    J --> K[FastAPI Backend]
-    K --> L[IBM Bob MCP Server]
-    K --> M[Operator Dashboard]
-    L --> N[IBM Bob - Conversational Interface]
+
+    J --> K[Curtailment Minimiser]
+
+    J --> L[Operator Brief]
+    K --> L
+
+    L --> M[FastAPI /api/v1]
+
+    M --> N[Operator Dashboard]
+    M --> O[IBM Bob MCP Server]
+
+    O --> P[IBM Bob Advisor]
 ```
 
-See [`docs/architecture.md`](docs/architecture.md) for the full Mermaid diagram and data-flow explanation.
+Full architecture documentation:
+
+```text
+docs/architecture.md
+```
 
 ---
 
-## Tech Stack
+# 🛠️ Tech Stack
 
 | Category | Technologies |
 |---|---|
-| **Languages** | Python 3.11+, TypeScript, HTML/CSS/JavaScript |
-| **ML / Analytics** | XGBoost, scikit-learn, pandas, numpy |
-| **Backend** | FastAPI, uvicorn, Pydantic |
-| **IBM Technologies** | IBM Bob, MCP (Model Context Protocol) |
-| **Data Storage** | Apache Parquet (via pyarrow) |
-| **MCP Server** | Node.js 20+, @modelcontextprotocol/sdk, Zod |
-| **Testing** | pytest (62 tests) |
+| Languages | Python, TypeScript, JavaScript, HTML, CSS |
+| Machine Learning | XGBoost, scikit-learn |
+| Data | pandas, NumPy, Apache Parquet |
+| Backend | FastAPI, Pydantic, Uvicorn |
+| IBM | IBM Bob |
+| AI Integration | MCP — Model Context Protocol |
+| MCP Runtime | Node.js, TypeScript, Zod |
+| Testing | pytest |
 
 ---
 
-## Repository Structure
+# 📡 REST API
 
+GridWise AI exposes a versioned API:
+
+```text
+/api/v1
 ```
+
+### Main Endpoints
+
+```text
+GET /api/v1/health
+
+GET /api/v1/grid/status
+
+GET /api/v1/forecast/load
+
+GET /api/v1/forecast/renewables
+
+GET /api/v1/grid/risks
+
+GET /api/v1/assets/anomalies
+
+GET /api/v1/assets/{asset_id}/diagnosis
+
+GET /api/v1/optimisation/plan
+
+GET /api/v1/curtailment/plan
+
+GET /api/v1/advisor/brief
+```
+
+FastAPI automatically exposes:
+
+```text
+/docs
+/openapi.json
+/redoc
+```
+
+---
+
+# 📁 Repository Structure
+
+```text
+bob-ai-hackathon-outliers/
+│
+├── submission.yaml
+├── README.md
+│
 ├── src/
-│   ├── backend/          # FastAPI application + Phase 2 routes + dashboard HTML
-│   ├── ml/               # All ML and analytics modules
-│   │   ├── load_forecasting.py
-│   │   ├── spike_detection.py
-│   │   ├── renewable_generation.py
-│   │   ├── anomaly_detection.py
-│   │   ├── root_cause_analysis.py
-│   │   ├── grid_optimiser.py
-│   │   ├── curtailment.py
-│   │   └── operator_brief.py
-│   ├── data/             # Synthetic data generator + demo scenarios
-│   ├── models/           # Pydantic schemas
-│   ├── services/         # Data store + model caching
-│   ├── bob_mcp/          # IBM Bob MCP server (Node.js/TypeScript)
-│   ├── tests/            # 62 pytest tests (Phase 1 + 2)
-│   ├── utils/            # Audit and validation scripts
+│   ├── backend/
+│   ├── ml/
+│   ├── data/
+│   ├── models/
+│   ├── services/
+│   ├── bob_mcp/
+│   ├── tests/
+│   ├── utils/
 │   ├── requirements.txt
 │   └── .env.example
-├── docs/                 # Written documentation
-├── demo/                 # Screenshots, video link, live URL
-├── presentation/         # Slide deck
-├── .bob/mcp.json         # Bob MCP server registration
-└── submission.yaml       # Structured submission metadata
+│
+├── docs/
+│   ├── problem-statement.md
+│   ├── solution-overview.md
+│   ├── architecture.md
+│   └── setup-guide.md
+│
+├── demo/
+│   ├── demo-video-link.txt
+│   ├── live-demo-url.txt
+│   └── screenshots/
+│
+├── presentation/
+│
+└── .bob/
+    └── mcp.json
 ```
 
 ---
 
-## How to Run
+# ▶️ How to Run
 
-See [`docs/setup-guide.md`](docs/setup-guide.md) for full instructions.
+Full instructions are available in:
+
+```text
+docs/setup-guide.md
+```
+
+### 1. Install dependencies
 
 ```bash
-# 1. Install Python dependencies
-pip install -r src/requirements.txt
+python -m pip install -r src/requirements.txt
+```
 
-# 2. Generate synthetic data (~5 seconds)
+### 2. Generate demo data
+
+```bash
 python -m src.data.synthetic_generator
+```
 
-# 3. Run all 62 tests
-pytest src/tests/ -v
+### 3. Run tests
 
-# 4. Start the API + Dashboard
-uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload
+```bash
+python -m pytest src/tests/ -v
+```
 
-# Dashboard:  http://localhost:8000/dashboard
-# API Docs:   http://localhost:8000/docs
-# Demo:       http://localhost:8000/demo
+### 4. Start GridWise AI
+
+```bash
+python -m uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Open:
+
+```text
+Landing Page
+http://localhost:8000/
+
+Operator Dashboard
+http://localhost:8000/dashboard
+
+Swagger API
+http://localhost:8000/docs
+
+Hackathon Demo
+http://localhost:8000/demo
 ```
 
 ---
 
-## IBM Bob Integration
+# ✅ Testing
 
-GridWise AI integrates with IBM Bob via a custom MCP server ([`src/bob_mcp/`](src/bob_mcp/)) registered at [`.bob/mcp.json`](.bob/mcp.json).
+The project includes tests for:
 
-**9 MCP tools available to Bob:**
+- load forecasting
+- leakage prevention
+- spike detection
+- solar/wind generation
+- anomaly detection
+- RCA
+- BESS constraints
+- grid optimisation
+- curtailment
+- demo scenarios
+- REST API behaviour
 
-| Tool | What Bob Gets |
+Run:
+
+```bash
+python -m pytest src/tests/ -v
+```
+
+Current project documentation reports:
+
+```text
+139 tests passing
+0 failures
+```
+
+---
+
+# ⚠️ Known Limitations
+
+1. The current prototype uses **synthetic/demo data** rather than live grid or SCADA telemetry.
+2. XGBoost performance is evaluated on the synthetic dataset and is not claimed to represent production utility performance.
+3. Production real-time ingestion is not implemented.
+4. Economic dispatch and electricity-market pricing are not currently modelled.
+5. BESS dispatch uses a priority/forward strategy rather than full multi-day mathematical optimisation.
+6. Renewable models simplify effects such as equipment ageing, solar-panel soiling and complex wind-farm wake effects.
+7. Production authentication and multi-user security are outside the current hackathon prototype.
+
+---
+
+# 🏆 What We're Most Proud Of
+
+The strongest aspect of GridWise AI is the **end-to-end evidence chain**.
+
+When a renewable asset underperforms, GridWise AI does not immediately declare a fault.
+
+It follows:
+
+```text
+Expected Generation
+        ↓
+Performance Deviation
+        ↓
+Weather Explanation
+        ↓
+Unexplained Loss
+        ↓
+Probable Root Cause
+        ↓
+Recommended Action
+        ↓
+Grid Optimisation
+        ↓
+Curtailment Plan
+        ↓
+IBM Bob Operator Brief
+```
+
+This makes every important recommendation traceable back to calculated evidence.
+
+IBM Bob acts as the conversational intelligence layer over this evidence instead of inventing operational measurements.
+
+---
+
+# 📦 Submission Artifacts
+
+| Artifact | Location |
 |---|---|
-| `get_grid_status` | Current load, capacity, reserve margin, risk level |
-| `get_load_forecast` | 24h XGBoost forecast with model metrics |
-| `get_spike_risks` | Per-hour risk classification (LOW/MEDIUM/HIGH/CRITICAL) |
-| `get_renewable_forecast` | Expected generation per asset |
-| `get_asset_anomalies` | Anomalous assets with performance ratios |
-| `diagnose_asset` | RCA with weather-explained vs unexplained loss |
-| `get_optimisation_plan` | BESS/DR/backup dispatch plan |
-| `get_curtailment_plan` | Curtailment minimisation analysis |
-| `generate_operator_brief` | Full 14-section operator brief |
-
-**Example Bob queries:**
-- *"What are the grid risks over the next 6 hours?"*
-- *"Which renewable assets are underperforming and why?"*
-- *"How much renewable curtailment can we avoid?"*
-- *"Generate the operator optimisation brief for scenario B."*
-
-Bob always labels data as: `[MEASURED DATA]`, `[ML MODEL PREDICTION]`, `[RULE-BASED RESULT]`, or `[HEURISTIC RCA]` — never invents measurements.
+| Source Code | [`src/`](src/) |
+| Problem Statement | [`docs/problem-statement.md`](docs/problem-statement.md) |
+| Solution Overview | [`docs/solution-overview.md`](docs/solution-overview.md) |
+| Architecture | [`docs/architecture.md`](docs/architecture.md) |
+| Setup Guide | [`docs/setup-guide.md`](docs/setup-guide.md) |
+| Demo Video | [`demo/demo-video-link.txt`](demo/demo-video-link.txt) |
+| Live Demo | [`demo/live-demo-url.txt`](demo/live-demo-url.txt) |
+| Screenshots | [`demo/screenshots/`](demo/screenshots/) |
+| Presentation | [`presentation/`](presentation/) |
+| Submission Metadata | [`submission.yaml`](submission.yaml) |
 
 ---
 
-## Demo
+<div align="center">
 
-| Artifact | Link |
-|---|---|
-| Demo Video | [See demo/demo-video-link.txt](demo/demo-video-link.txt) |
-| Live Demo | [See demo/live-demo-url.txt](demo/live-demo-url.txt) |
-| Screenshots | [See demo/screenshots/](demo/screenshots/) |
-| Presentation | [See presentation/](presentation/) |
+## ⚡ GridWise AI
 
-### Hackathon Demo Scenario (Scenario D)
+### Forecast → Detect → Diagnose → Optimise → Minimise Curtailment → Explain with IBM Bob
 
-The demo scenario combines:
-1. **Approaching evening demand spike** — load rising to 2,115 MW with reserve margin < 12%
-2. **SOL-02 inverter fault** — 18% capacity factor on a clear sky day (950 W/m² irradiance)
+**Team Outliers**
 
-Run it: `GET http://localhost:8000/demo`
+**U2 — Grid Load Optimisation & Renewable Energy Performance Advisor**
 
----
-
-## Known Limitations
-
-1. **Synthetic data only** — not real grid or weather telemetry
-2. **No real-time ingestion** — data is static parquet files from a one-time generator
-3. **No economic dispatch** — market prices and curtailment costs not modelled
-4. **Greedy BESS optimisation** — forward-greedy per-interval, not multi-day rolling optimal
-5. **Bob dashboard routing** — keyword-based in the browser; full tool-call chain needs MCP server + running API
-6. **No authentication** — API endpoints are unauthenticated
-7. **No CI/CD** — no automated deployment pipeline
-
----
-
-## What We're Most Proud Of
-
-The **evidence chain integrity**: from the moment a solar asset underperforms, the system traces the physics (is irradiance low? is it cloudy?), separates weather-explainable loss from genuine unexplained loss, assigns calibrated confidence scores to root causes, and surfaces a concrete inspection recommendation — all without fabricating any number. IBM Bob then retrieves these computed results and explains them in plain language, correctly labelling each piece of data by its source type. This is the exact kind of transparent, auditable AI that grid operators need to trust.
-
----
-
-## Strongest Technical Contribution
-
-The **Root Cause Analysis engine** ([`src/ml/root_cause_analysis.py`](src/ml/root_cause_analysis.py)) combined with the **Grid Optimisation Engine** ([`src/ml/grid_optimiser.py`](src/ml/grid_optimiser.py)). Together they demonstrate that deterministic, explainable, constraint-respecting AI can be more operationally valuable than black-box models — every decision has a traceable arithmetic path from input data to recommended action.
+</div>

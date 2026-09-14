@@ -404,9 +404,30 @@ def get_dashboard():
 
 
 @app.get("/", response_class=HTMLResponse, tags=["System"], include_in_schema=False)
-def root_redirect():
-    """Redirect root to the dashboard."""
+def landing_page():
+    """Serve the GridWise AI landing page."""
+    html_path = _pathlib.Path(__file__).parent / "landing.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
     return HTMLResponse(content='<meta http-equiv="refresh" content="0;url=/dashboard" />')
+
+
+@app.get("/login", response_class=HTMLResponse, tags=["System"], include_in_schema=False)
+def login_page():
+    """Serve the login page."""
+    html_path = _pathlib.Path(__file__).parent / "login.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
+
+
+@app.get("/signup", response_class=HTMLResponse, tags=["System"], include_in_schema=False)
+def signup_page():
+    """Serve the account creation page."""
+    html_path = _pathlib.Path(__file__).parent / "signup.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Signup page not found</h1>", status_code=404)
 
 
 # ---------------------------------------------------------------------------

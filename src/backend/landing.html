@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridWise AI — Grid Load Optimisation & Renewable Energy Advisor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #388bfd;
+      --green:    #3fb950;
+      --yellow:   #d29922;
+      --orange:   #f0883e;
+      --red:      #f85149;
+      --font:     -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(13,17,23,.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 40px; height: 60px; gap: 16px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; }
+    .nav-logo-icon { font-size: 22px; }
+    .nav-badge { font-size: 10px; background: var(--yellow); color: #000; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+    .nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+    .nav-link { color: var(--muted); text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 6px; transition: color .15s, background .15s; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-btn { background: var(--accent); color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 18px; border-radius: 6px; transition: opacity .15s; }
+    .nav-btn:hover { opacity: .85; }
+    .nav-btn-ghost { border: 1px solid var(--border); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; padding: 7px 16px; border-radius: 6px; transition: border-color .15s; }
+    .nav-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 100px 24px 80px; text-align: center;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56,139,253,.18) 0%, transparent 70%);
+    }
+    .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(56,139,253,.12); border: 1px solid rgba(56,139,253,.3); color: var(--accent); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 28px; letter-spacing: .5px; text-transform: uppercase; }
+    .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .hero h1 { font-size: clamp(36px, 5vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; max-width: 820px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 620px; line-height: 1.7; margin-bottom: 40px; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .btn-primary { background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; padding: 12px 28px; border-radius: 8px; text-decoration: none; transition: opacity .15s, transform .15s; }
+    .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 15px; font-weight: 500; padding: 11px 26px; border-radius: 8px; text-decoration: none; transition: border-color .15s; }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .hero-note { margin-top: 16px; font-size: 12px; color: var(--muted); }
+
+    /* ── STATS STRIP ── */
+    .stats-strip { display: flex; justify-content: center; gap: 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+    .stat-item { flex: 1; max-width: 220px; text-align: center; padding: 28px 16px; border-right: 1px solid var(--border); }
+    .stat-item:last-child { border-right: none; }
+    .stat-val { font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+    .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── FEATURES ── */
+    .section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .section-title { font-size: clamp(26px, 3vw, 40px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .section-sub { font-size: 16px; color: var(--muted); max-width: 580px; line-height: 1.7; margin-bottom: 52px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; transition: border-color .2s, transform .2s; }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature-icon { width: 44px; height: 44px; background: rgba(56,139,253,.12); border: 1px solid rgba(56,139,253,.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; }
+    .feature-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .feature-tag { display: inline-block; margin-top: 12px; font-size: 10px; font-weight: 700; letter-spacing: .5px; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+    .tag-ml { background: rgba(188,140,255,.12); color: #bc8cff; }
+    .tag-physics { background: rgba(56,139,253,.12); color: var(--accent); }
+    .tag-rule { background: rgba(63,185,80,.12); color: var(--green); }
+    .tag-rca { background: rgba(210,153,34,.12); color: var(--yellow); }
+    .tag-opt { background: rgba(240,136,62,.12); color: var(--orange); }
+    .tag-bob { background: rgba(248,81,73,.12); color: var(--red); }
+
+    /* ── HOW IT WORKS ── */
+    .pipeline { display: flex; gap: 0; align-items: stretch; flex-wrap: wrap; }
+    .pipe-step { flex: 1; min-width: 140px; background: var(--surface); border: 1px solid var(--border); padding: 24px 20px; text-align: center; position: relative; }
+    .pipe-step:not(:last-child)::after { content: "→"; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 18px; z-index: 1; }
+    .pipe-step:first-child { border-radius: 10px 0 0 10px; }
+    .pipe-step:last-child { border-radius: 0 10px 10px 0; }
+    .pipe-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+    .pipe-label { font-size: 12px; font-weight: 600; color: var(--text); }
+    .pipe-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── BOB SECTION ── */
+    .bob-section { background: linear-gradient(135deg, rgba(56,139,253,.06) 0%, rgba(248,81,73,.04) 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 24px; }
+    .bob-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .bob-queries { display: flex; flex-direction: column; gap: 10px; }
+    .bob-query { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .bob-query-icon { font-size: 16px; }
+    .bob-answer { background: var(--surface2); border: 1px solid rgba(56,139,253,.3); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--text); line-height: 1.5; font-family: "Consolas", monospace; }
+
+    /* ── SCENARIOS ── */
+    .scenarios-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .scenario-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .scenario-letter { font-size: 32px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+    .scenario-name { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .scenario-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .scenario-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .sbadge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+    .sbadge-ok { background: rgba(63,185,80,.12); color: var(--green); }
+    .sbadge-warn { background: rgba(240,136,62,.12); color: var(--orange); }
+    .sbadge-crit { background: rgba(248,81,73,.12); color: var(--red); }
+
+    /* ── CTA BOTTOM ── */
+    .cta-bottom { text-align: center; padding: 80px 24px; background: radial-gradient(ellipse 60% 60% at 50% 100%, rgba(56,139,253,.12) 0%, transparent 70%); }
+    .cta-bottom h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .cta-bottom p { font-size: 16px; color: var(--muted); margin-bottom: 36px; }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 32px 40px; display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
+    .footer-left { font-size: 13px; color: var(--muted); }
+    .footer-right { font-size: 12px; color: var(--muted); }
+    .footer-right a { color: var(--muted); text-decoration: none; }
+    .footer-right a:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .nav-links { gap: 4px; }
+      .nav-link { display: none; }
+      .bob-inner { grid-template-columns: 1fr; }
+      .pipe-step:not(:last-child)::after { display: none; }
+      .stats-strip { flex-wrap: wrap; }
+      .stat-item { min-width: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="/">
+    <span class="nav-logo-icon">⚡</span>
+    GridWise AI
+  </a>
+  <span class="nav-badge">SYNTHETIC DATA</span>
+  <div class="nav-links">
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#how-it-works">How it works</a>
+    <a class="nav-link" href="#scenarios">Scenarios</a>
+    <a class="nav-link" href="#bob">IBM Bob</a>
+    <a class="nav-btn-ghost" href="/login">Sign in</a>
+    <a class="nav-btn" href="/signup">Get started</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-tag">
+    <span class="hero-tag-dot"></span>
+    IBM Bob AI Hackathon — Track: AI
+  </div>
+  <h1>Grid intelligence for<br><span>the renewable era</span></h1>
+  <p>
+    Forecast demand spikes. Detect underperforming solar and wind assets.
+    Diagnose root causes. Optimise BESS dispatch. Ask IBM Bob anything.
+    All from one operator platform.
+  </p>
+  <div class="hero-cta">
+    <a class="btn-primary" href="/signup">Start for free</a>
+    <a class="btn-secondary" href="/dashboard">View live dashboard</a>
+  </div>
+  <p class="hero-note">No API keys required · Synthetic demo data · 62 tests passing</p>
+</section>
+
+<!-- ── STATS ── -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <div class="stat-val">R²=0.90</div>
+    <div class="stat-lbl">XGBoost forecast accuracy</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">9</div>
+    <div class="stat-lbl">IBM Bob MCP tools</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">62</div>
+    <div class="stat-lbl">Automated tests</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">8,760h</div>
+    <div class="stat-lbl">Synthetic data records</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">14</div>
+    <div class="stat-lbl">Operator brief sections</div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+  <div class="section-label">Core Capabilities</div>
+  <h2 class="section-title">Every tool an operator needs</h2>
+  <p class="section-sub">Six integrated analytics layers, chained from raw data to IBM Bob conversation.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title">24-Hour Load Forecasting</div>
+      <div class="feature-desc">XGBoost model with 14 features including temporal lags, rolling means, and weather. Chronological 70/15/15 split. No data leakage. Produces per-hour demand forecast with model metrics.</div>
+      <span class="feature-tag tag-ml">ML Model</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">☀️</div>
+      <div class="feature-title">Renewable Generation Models</div>
+      <div class="feature-desc">Physics-based solar (GHI × cloud transmissivity × temperature derating) and wind (cubic power curve + air density correction) expected-generation models. Every step is transparent and auditable.</div>
+      <span class="feature-tag tag-physics">Physics</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚠️</div>
+      <div class="feature-title">Demand Spike Detection</div>
+      <div class="feature-desc">Reserve-margin threshold engine classifying each forecast interval as LOW / MEDIUM / HIGH / CRITICAL. Configurable thresholds. Continuous risk score [0–1] per hour. All parameters env-variable driven.</div>
+      <span class="feature-tag tag-rule">Rule-based</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Asset Anomaly Detection</div>
+      <div class="feature-desc">Compares actual vs expected generation using performance ratio and absolute deviation thresholds. Critical safeguard: nighttime and calm-weather periods are never flagged as anomalies.</div>
+      <span class="feature-tag tag-rule">Rule-based</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-title">Evidence-Based Root Cause Analysis</div>
+      <div class="feature-desc">Separates weather-explained losses from unexplained losses. Returns confidence-scored cause candidates (cloud cover, irradiance, temperature derating, inverter fault, curtailment). Never claims mechanical failure without evidence.</div>
+      <span class="feature-tag tag-rca">Heuristic RCA</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Grid Optimisation Engine</div>
+      <div class="feature-desc">Priority-order dispatch: BESS discharge → demand response → backup for deficits; BESS charge → flexible load → export → curtailment for surplus. All SOC and power constraints enforced. Transparent per-interval actions.</div>
+      <span class="feature-tag tag-opt">Deterministic</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔋</div>
+      <div class="feature-title">Curtailment Minimisation</div>
+      <div class="feature-desc">Calculates potential curtailment, BESS absorption, flexible load absorption, export, unavoidable curtailment, and avoided curtailment per interval. Full transparent arithmetic breakdown with explanation text.</div>
+      <span class="feature-tag tag-opt">Arithmetic</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">IBM Bob MCP Integration</div>
+      <div class="feature-desc">9 MCP tools expose the full GridWise analytics stack to IBM Bob. Bob retrieves computed results — never fabricates numbers. Every response labels its data type: MEASURED / ML PREDICTION / RULE-BASED / HEURISTIC.</div>
+      <span class="feature-tag tag-bob">IBM Bob</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖥️</div>
+      <div class="feature-title">Operator Dashboard</div>
+      <div class="feature-desc">7-page dark-mode grid-operations UI: Overview, Load Forecast, Grid Risk, Asset Performance, Asset Diagnosis, Grid Optimisation, Curtailment, and AI Operator Advisor. No frontend framework — pure HTML/CSS/JS.</div>
+      <span class="feature-tag tag-physics">Frontend</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section style="padding:0 24px 80px; max-width:1100px; margin:0 auto;" id="how-it-works">
+  <div class="section-label">Pipeline</div>
+  <h2 class="section-title" style="margin-bottom:14px;">One evidence chain, end to end</h2>
+  <p style="font-size:16px;color:var(--muted);margin-bottom:40px;line-height:1.7">
+    Every number Bob cites traces back through this chain to raw telemetry. No fabrication at any step.
+  </p>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num">1</div>
+      <div class="pipe-label">Synthetic Data</div>
+      <div class="pipe-sub">8,760h parquet</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">2</div>
+      <div class="pipe-label">Load Forecast</div>
+      <div class="pipe-sub">XGBoost 24h</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">3</div>
+      <div class="pipe-label">Spike Detection</div>
+      <div class="pipe-sub">Reserve margin</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">4</div>
+      <div class="pipe-label">Renewable Models</div>
+      <div class="pipe-sub">Physics solar+wind</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">5</div>
+      <div class="pipe-label">Anomaly Detection</div>
+      <div class="pipe-sub">Actual vs expected</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">6</div>
+      <div class="pipe-label">Root Cause</div>
+      <div class="pipe-sub">Weather vs fault</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">7</div>
+      <div class="pipe-label">Optimisation</div>
+      <div class="pipe-sub">BESS / DR / backup</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">8</div>
+      <div class="pipe-label">IBM Bob</div>
+      <div class="pipe-sub">9 MCP tools</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BOB SECTION ── -->
+<section class="bob-section" id="bob">
+  <div class="bob-inner">
+    <div>
+      <div class="section-label">IBM Bob Integration</div>
+      <h2 class="section-title" style="margin-bottom:14px;">Ask Bob anything about the grid</h2>
+      <p style="font-size:16px;color:var(--muted);line-height:1.7;margin-bottom:28px;">
+        Bob calls 9 MCP tools that hit the GridWise FastAPI backend directly.
+        Every answer cites its source — model prediction, rule-based result, or heuristic estimate.
+        Bob never invents a number.
+      </p>
+      <div class="bob-queries">
+        <div class="bob-query"><span class="bob-query-icon">💬</span>"What are the grid risks over the next 6 hours?"</div>
+        <div class="bob-query"><span class="bob-query-icon">💬</span>"Which renewable assets are underperforming and why?"</div>
+        <div class="bob-query"><span class="bob-query-icon">💬</span>"How can we handle tonight's demand peak?"</div>
+        <div class="bob-query"><span class="bob-query-icon">💬</span>"How much renewable curtailment can we avoid?"</div>
+        <div class="bob-query"><span class="bob-query-icon">💬</span>"Generate the operator optimisation brief."</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Example Bob response</div>
+      <div class="bob-answer">=== ASSET DIAGNOSIS: SOL-02 [HEURISTIC RCA] ===
+
+Expected: 63.0 MW  |  Actual: 11.5 MW
+Weather explained: 1.7 MW
+Unexplained: 49.8 MW
+
+[52%] inverter_or_string_issue:
+Unexplained loss of 49.8 MW (perf ratio
+0.18) suggests possible inverter failure,
+string disconnection, or soiling.
+
+INSPECTION RECOMMENDED
+Unexplained loss of 49.8 MW warrants
+on-site inspection.</div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+        Data type labels: [HEURISTIC RCA] — not a mechanical certainty.
+        All values fetched from GridWise backend, not generated by Bob.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCENARIOS ── -->
+<section class="section" id="scenarios">
+  <div class="section-label">Demo Scenarios</div>
+  <h2 class="section-title">Four reproducible test cases</h2>
+  <p class="section-sub">Every scenario is seeded and deterministic. Run them via the API or dashboard.</p>
+
+  <div class="scenarios-grid">
+    <div class="scenario-card">
+      <div class="scenario-letter">A</div>
+      <div class="scenario-name">Normal Grid Operation</div>
+      <div class="scenario-desc">Moderate demand, adequate capacity, all five assets performing within expected range. BESS at mid-SOC. No spike risks. No anomalies.</div>
+      <div class="scenario-badges">
+        <span class="sbadge sbadge-ok">No backup needed</span>
+        <span class="sbadge sbadge-ok">All assets normal</span>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="scenario-letter">B</div>
+      <div class="scenario-name">Demand Spike + Deficit</div>
+      <div class="scenario-desc">Evening demand surge to 2,200 MW on a hot night with minimal renewable output. BESS partially depleted. Requires BESS discharge + demand response + backup generation.</div>
+      <div class="scenario-badges">
+        <span class="sbadge sbadge-crit">Backup required</span>
+        <span class="sbadge sbadge-warn">DR activated</span>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="scenario-letter">C</div>
+      <div class="scenario-name">Renewable Surplus + Fault</div>
+      <div class="scenario-desc">High renewable generation creates midday surplus. BESS fully charged. SOL-02 severely underperforming. Curtailment analysis and RCA required simultaneously.</div>
+      <div class="scenario-badges">
+        <span class="sbadge sbadge-crit">Inverter fault</span>
+        <span class="sbadge sbadge-warn">Curtailment risk</span>
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="scenario-letter">D</div>
+      <div class="scenario-name">Hackathon Demo</div>
+      <div class="scenario-desc">Combined: approaching evening spike to 2,115 MW + SOL-02 at 18% capacity factor on a clear sky day (950 W/m²). Inverter fault suspected. BESS dispatch + RCA together.</div>
+      <div class="scenario-badges">
+        <span class="sbadge sbadge-crit">8 high-risk hours</span>
+        <span class="sbadge sbadge-crit">49.8 MW unexplained</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:40px">
+    <a class="btn-secondary" href="/dashboard">Run scenarios in dashboard →</a>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-bottom">
+  <h2>Ready to optimise your grid?</h2>
+  <p>Create an account to access the full operator dashboard and IBM Bob advisor.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <a class="btn-primary" href="/signup">Create free account</a>
+    <a class="btn-secondary" href="/dashboard">Explore dashboard</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-left">
+    ⚡ GridWise AI &nbsp;·&nbsp; IBM Bob AI Hackathon &nbsp;·&nbsp; Team Outliers &nbsp;·&nbsp;
+    <span style="color:var(--yellow);font-size:11px">SYNTHETIC DATA — not real telemetry</span>
+  </div>
+  <div class="footer-right">
+    <a href="/docs">API Docs</a> &nbsp;·&nbsp;
+    <a href="/dashboard">Dashboard</a> &nbsp;·&nbsp;
+    <a href="/demo">Demo endpoint</a>
+  </div>
+</footer>
+
+</body>
+</html>

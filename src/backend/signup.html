@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — GridWise AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #388bfd;
+      --green:    #3fb950;
+      --yellow:   #d29922;
+      --red:      #f85149;
+      --font:     -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: linear-gradient(160deg, #0d1117 0%, #0d1f35 60%, #0d1117 100%);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-panel::before {
+      content: "";
+      position: absolute;
+      top: -200px; left: -100px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(56,139,253,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--text); text-decoration: none; margin-bottom: auto; }
+    .logo-icon { font-size: 24px; }
+    .left-content { margin-bottom: auto; }
+    .left-content h2 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.2; }
+    .left-content h2 span { color: var(--accent); }
+    .left-content p { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 36px; }
+
+    /* Stats strip */
+    .stats-strip { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+    .stat-item { display: flex; align-items: center; gap: 14px; }
+    .stat-badge {
+      min-width: 52px; height: 36px; background: rgba(56,139,253,.12);
+      border: 1px solid rgba(56,139,253,.25); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--accent);
+    }
+    .stat-text { font-size: 13px; color: var(--muted); }
+    .stat-text strong { color: var(--text); }
+
+    /* Role pills */
+    .role-section { margin-bottom: 8px; }
+    .role-section p { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .role-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .role-pill {
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); color: var(--muted);
+      background: var(--surface);
+    }
+
+    .left-footer { font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 20px; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 60px;
+      background: var(--bg);
+      overflow-y: auto;
+    }
+    .auth-box { width: 100%; max-width: 420px; }
+    .auth-header { text-align: center; margin-bottom: 32px; }
+    .auth-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .auth-header p { font-size: 14px; color: var(--muted); }
+    .auth-header a { color: var(--accent); text-decoration: none; }
+    .auth-header a:hover { text-decoration: underline; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+    .form-required { color: var(--red); margin-left: 2px; }
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,139,253,.15); }
+    .form-input::placeholder { color: var(--muted); }
+    .form-input.error { border-color: var(--red); }
+    .form-input.valid { border-color: var(--green); }
+    .form-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .form-error { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+    .form-error.show { display: block; }
+    .form-success { font-size: 12px; color: var(--green); margin-top: 6px; display: none; }
+    .form-success.show { display: block; }
+
+    /* Row layout */
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Role select */
+    .form-select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b949e' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,139,253,.15); }
+    .form-select option { background: var(--surface2); color: var(--text); }
+
+    /* Password wrapper */
+    .pw-wrap { position: relative; }
+    .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; }
+    .pw-toggle:hover { color: var(--text); }
+
+    /* Password strength */
+    .pw-strength { margin-top: 8px; }
+    .pw-strength-bar { display: flex; gap: 4px; margin-bottom: 5px; }
+    .pw-strength-seg { flex: 1; height: 3px; background: var(--border); border-radius: 2px; transition: background .2s; }
+    .pw-strength-seg.weak   { background: var(--red); }
+    .pw-strength-seg.fair   { background: var(--yellow); }
+    .pw-strength-seg.good   { background: var(--accent); }
+    .pw-strength-seg.strong { background: var(--green); }
+    .pw-strength-label { font-size: 11px; color: var(--muted); }
+    .pw-strength-label.weak   { color: var(--red); }
+    .pw-strength-label.fair   { color: var(--yellow); }
+    .pw-strength-label.good   { color: var(--accent); }
+    .pw-strength-label.strong { color: var(--green); }
+
+    /* Terms checkbox */
+    .terms-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+    .terms-row input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+    .terms-row label { font-size: 13px; color: var(--muted); cursor: pointer; line-height: 1.5; }
+    .terms-row a { color: var(--accent); text-decoration: none; }
+    .terms-row a:hover { text-decoration: underline; }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .15s;
+      font-family: var(--font);
+      position: relative;
+    }
+    .btn-submit:hover { opacity: .88; }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-submit .spinner { display: none; }
+    .btn-submit.loading .spinner { display: inline; }
+    .btn-submit.loading .btn-text { opacity: 0; }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    /* Demo signup */
+    .demo-btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; display: none; }
+    .alert.show { display: block; }
+    .alert-error   { background: rgba(248,81,73,.1);  border: 1px solid rgba(248,81,73,.3);  color: var(--red); }
+    .alert-success { background: rgba(63,185,80,.1);  border: 1px solid rgba(63,185,80,.3);  color: var(--green); }
+
+    .auth-bottom { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
+    .auth-bottom a { color: var(--accent); text-decoration: none; }
+    .auth-bottom a:hover { text-decoration: underline; }
+
+    /* Step indicator */
+    .step-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 28px; }
+    .step { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .step.active { border-color: var(--accent); color: var(--accent); background: rgba(56,139,253,.1); }
+    .step.done   { border-color: var(--green);  color: var(--green);  background: rgba(63,185,80,.1); }
+    .step-line   { flex: 1; max-width: 32px; height: 1px; background: var(--border); }
+    .step-line.done { background: var(--green); }
+
+    @media (max-width: 768px) {
+      body { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 40px 24px; }
+      .form-row { flex-direction: column; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+  <a class="logo" href="/">
+    <span class="logo-icon">&#9889;</span>
+    GridWise AI
+  </a>
+  <div class="left-content">
+    <h2>Your grid.<br><span>Intelligently managed.</span></h2>
+    <p>Join grid operators using GridWise AI to forecast demand, detect asset anomalies, and optimise renewable dispatch — all in one platform.</p>
+
+    <div class="stats-strip">
+      <div class="stat-item">
+        <div class="stat-badge">R²</div>
+        <div class="stat-text"><strong>0.90 test accuracy</strong> on 24-hour XGBoost load forecast</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-badge">9</div>
+        <div class="stat-text"><strong>IBM Bob MCP tools</strong> for real-time operator advisory</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-badge">MW</div>
+        <div class="stat-text"><strong>BESS dispatch optimisation</strong> with full SOC constraints</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-badge">RCA</div>
+        <div class="stat-text"><strong>Evidence-based root cause</strong> — weather vs. equipment faults</div>
+      </div>
+    </div>
+
+    <div class="role-section">
+      <p>Roles supported on this platform:</p>
+      <div class="role-pills">
+        <span class="role-pill">Grid Operator</span>
+        <span class="role-pill">Asset Manager</span>
+        <span class="role-pill">Data Engineer</span>
+        <span class="role-pill">Energy Analyst</span>
+        <span class="role-pill">Control Room</span>
+      </div>
+    </div>
+  </div>
+  <div class="left-footer">
+    GridWise AI &nbsp;·&nbsp; IBM Bob AI Hackathon &nbsp;·&nbsp; Team Outliers<br>
+    <span style="color:var(--yellow)">All data is SYNTHETIC / DEMO — not real telemetry</span>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="auth-box">
+
+    <div class="step-indicator">
+      <div class="step active" id="step1-dot">1</div>
+      <div class="step-line" id="step-line-1"></div>
+      <div class="step" id="step2-dot">2</div>
+      <div class="step-line" id="step-line-2"></div>
+      <div class="step" id="step3-dot">3</div>
+    </div>
+
+    <div class="auth-header">
+      <h1>Create your account</h1>
+      <p>Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+
+    <div class="alert" id="form-alert"></div>
+
+    <form id="signup-form" novalidate>
+
+      <!-- STEP 1: Personal details -->
+      <div id="step-1">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="first-name">First name <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="first-name" name="first_name" placeholder="Ada" autocomplete="given-name" required />
+            <div class="form-error" id="first-name-error">First name is required.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="last-name">Last name <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="last-name" name="last_name" placeholder="Lovelace" autocomplete="family-name" required />
+            <div class="form-error" id="last-name-error">Last name is required.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Work email <span class="form-required">*</span></label>
+          <input class="form-input" type="email" id="email" name="email" placeholder="operator@gridwise.ai" autocomplete="email" required />
+          <div class="form-error" id="email-error">Please enter a valid email address.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="organisation">Organisation <span class="form-required">*</span></label>
+          <input class="form-input" type="text" id="organisation" name="organisation" placeholder="National Grid Ops" autocomplete="organization" required />
+          <div class="form-error" id="organisation-error">Organisation is required.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="role">Role</label>
+          <select class="form-select" id="role" name="role">
+            <option value="">Select your role…</option>
+            <option value="grid_operator">Grid Operator</option>
+            <option value="asset_manager">Asset Manager</option>
+            <option value="data_engineer">Data Engineer</option>
+            <option value="energy_analyst">Energy Analyst</option>
+            <option value="control_room">Control Room</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn-submit" id="next-btn-1" onclick="goToStep(2)">
+          Continue
+        </button>
+      </div>
+
+      <!-- STEP 2: Security -->
+      <div id="step-2" style="display:none;">
+        <div class="form-group">
+          <label class="form-label" for="password">Password <span class="form-required">*</span></label>
+          <div class="pw-wrap">
+            <input class="form-input" type="password" id="password" name="password" placeholder="Create a strong password" autocomplete="new-password" required />
+            <button type="button" class="pw-toggle" id="pw-toggle-1" title="Toggle password visibility">&#128065;</button>
+          </div>
+          <div class="pw-strength" id="pw-strength-ui" style="display:none;">
+            <div class="pw-strength-bar">
+              <div class="pw-strength-seg" id="pw-seg-1"></div>
+              <div class="pw-strength-seg" id="pw-seg-2"></div>
+              <div class="pw-strength-seg" id="pw-seg-3"></div>
+              <div class="pw-strength-seg" id="pw-seg-4"></div>
+            </div>
+            <span class="pw-strength-label" id="pw-strength-label"></span>
+          </div>
+          <div class="form-hint">Minimum 8 characters. Include uppercase, numbers, and symbols for a stronger password.</div>
+          <div class="form-error" id="password-error">Password is required.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password-confirm">Confirm password <span class="form-required">*</span></label>
+          <div class="pw-wrap">
+            <input class="form-input" type="password" id="password-confirm" name="password_confirm" placeholder="Re-enter your password" autocomplete="new-password" required />
+            <button type="button" class="pw-toggle" id="pw-toggle-2" title="Toggle confirm visibility">&#128065;</button>
+          </div>
+          <div class="form-error" id="password-confirm-error">Passwords do not match.</div>
+          <div class="form-success" id="password-confirm-success">Passwords match.</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:18px;">
+          <button type="button" class="demo-btn" style="flex:0 0 auto;width:auto;padding:10px 18px;" onclick="goToStep(1)">&#8592; Back</button>
+          <button type="button" class="btn-submit" style="flex:1;" id="next-btn-2" onclick="goToStep(3)">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Terms + final submit -->
+      <div id="step-3" style="display:none;">
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">Account summary</div>
+          <div style="font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;">
+            <div><span id="summary-name" style="color:var(--text);font-weight:500;"></span></div>
+            <div id="summary-email"></div>
+            <div id="summary-org"></div>
+            <div id="summary-role"></div>
+          </div>
+        </div>
+
+        <div class="terms-row">
+          <input type="checkbox" id="terms" name="terms" />
+          <label for="terms">
+            I agree to the <a href="#" onclick="return false;">Terms of Service</a> and <a href="#" onclick="return false;">Privacy Policy</a>.
+            I understand this is a demo platform with synthetic data only.
+          </label>
+        </div>
+        <div class="form-error" id="terms-error" style="margin-top:-12px;margin-bottom:14px;">You must agree to the terms to continue.</div>
+
+        <div class="terms-row">
+          <input type="checkbox" id="updates" name="updates" checked />
+          <label for="updates">Send me product updates and grid intelligence tips.</label>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:0;">
+          <button type="button" class="demo-btn" style="flex:0 0 auto;width:auto;padding:10px 18px;" onclick="goToStep(2)">&#8592; Back</button>
+          <button class="btn-submit" type="submit" style="flex:1;" id="submit-btn">
+            <span class="btn-text">Create account</span>
+            <span class="spinner">Creating account…</span>
+          </button>
+        </div>
+
+        <div class="divider"><span>or skip straight to the demo</span></div>
+
+        <button type="button" class="demo-btn" onclick="demoSignup()">
+          <span>&#9889;</span> Continue as Demo Operator
+        </button>
+
+      </div>
+
+    </form>
+
+    <div class="auth-bottom">
+      Already have an account? <a href="/login">Sign in to GridWise AI</a><br>
+      <span style="font-size:11px;margin-top:6px;display:block">
+        <a href="/" style="color:var(--muted)">&#8592; Back to home</a>
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let currentStep = 1;
+const TOTAL_STEPS = 3;
+
+// ── Step navigation ─────────────────────────────────────────────────────────
+function goToStep(n) {
+  if (n > currentStep && !validateStep(currentStep)) return;
+
+  // Update dots
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const dot  = document.getElementById('step' + i + '-dot');
+    const line = document.getElementById('step-line-' + i);
+    if (i < n)  { dot.className = 'step done'; dot.textContent = '✓'; }
+    else if (i === n) { dot.className = 'step active'; dot.textContent = String(i); }
+    else        { dot.className = 'step'; dot.textContent = String(i); }
+    if (line) line.className = 'step-line' + (i < n ? ' done' : '');
+  }
+
+  // Show/hide panels
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    document.getElementById('step-' + i).style.display = i === n ? 'block' : 'none';
+  }
+
+  if (n === 3) fillSummary();
+  clearAlert();
+  currentStep = n;
+}
+
+// ── Validation helpers ───────────────────────────────────────────────────────
+function setError(id, msg) {
+  const el    = document.getElementById(id + '-error');
+  const input = document.getElementById(id);
+  if (el)    { el.textContent = msg; el.classList.add('show'); }
+  if (input) input.classList.add('error');
+}
+function clearError(id) {
+  const el    = document.getElementById(id + '-error');
+  const input = document.getElementById(id);
+  if (el)    el.classList.remove('show');
+  if (input) { input.classList.remove('error'); }
+}
+function showAlert(msg, type) {
+  const el = document.getElementById('form-alert');
+  el.textContent = msg;
+  el.className   = 'alert show alert-' + (type || 'error');
+}
+function clearAlert() {
+  document.getElementById('form-alert').className = 'alert';
+}
+
+function validateStep(step) {
+  let ok = true;
+  if (step === 1) {
+    const fn = document.getElementById('first-name').value.trim();
+    const ln = document.getElementById('last-name').value.trim();
+    const em = document.getElementById('email').value.trim();
+    const or = document.getElementById('organisation').value.trim();
+    if (!fn) { setError('first-name', 'First name is required.'); ok = false; } else clearError('first-name');
+    if (!ln) { setError('last-name',  'Last name is required.');  ok = false; } else clearError('last-name');
+    if (!em) { setError('email', 'Email is required.'); ok = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { setError('email', 'Please enter a valid email address.'); ok = false; }
+    else clearError('email');
+    if (!or) { setError('organisation', 'Organisation is required.'); ok = false; } else clearError('organisation');
+  }
+  if (step === 2) {
+    const pw  = document.getElementById('password').value;
+    const pw2 = document.getElementById('password-confirm').value;
+    if (!pw || pw.length < 8) { setError('password', 'Password must be at least 8 characters.'); ok = false; } else clearError('password');
+    if (!pw2) { setError('password-confirm', 'Please confirm your password.'); ok = false; }
+    else if (pw !== pw2) { setError('password-confirm', 'Passwords do not match.'); ok = false; }
+    else clearError('password-confirm');
+  }
+  return ok;
+}
+
+// ── Summary card ─────────────────────────────────────────────────────────────
+const ROLE_LABELS = {
+  grid_operator: 'Grid Operator', asset_manager: 'Asset Manager',
+  data_engineer: 'Data Engineer', energy_analyst: 'Energy Analyst',
+  control_room: 'Control Room', other: 'Other', '': ''
+};
+function fillSummary() {
+  const fn   = document.getElementById('first-name').value.trim();
+  const ln   = document.getElementById('last-name').value.trim();
+  const em   = document.getElementById('email').value.trim();
+  const org  = document.getElementById('organisation').value.trim();
+  const role = document.getElementById('role').value;
+  document.getElementById('summary-name').textContent  = fn + ' ' + ln;
+  document.getElementById('summary-email').textContent = em;
+  document.getElementById('summary-org').textContent   = org;
+  document.getElementById('summary-role').textContent  = ROLE_LABELS[role] || '';
+}
+
+// ── Password toggles ─────────────────────────────────────────────────────────
+function bindPwToggle(toggleId, inputId) {
+  document.getElementById(toggleId).addEventListener('click', () => {
+    const inp = document.getElementById(inputId);
+    const btn = document.getElementById(toggleId);
+    if (inp.type === 'password') { inp.type = 'text';     btn.textContent = String.fromCodePoint(0x1F648); }
+    else                         { inp.type = 'password'; btn.textContent = String.fromCodePoint(0x1F441); }
+  });
+}
+bindPwToggle('pw-toggle-1', 'password');
+bindPwToggle('pw-toggle-2', 'password-confirm');
+
+// ── Password strength ────────────────────────────────────────────────────────
+function calcStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { level: 0, label: 'Weak',   cls: 'weak' };
+  if (score <= 2) return { level: 1, label: 'Fair',   cls: 'fair' };
+  if (score <= 3) return { level: 2, label: 'Good',   cls: 'good' };
+  return             { level: 3, label: 'Strong', cls: 'strong' };
+}
+
+document.getElementById('password').addEventListener('input', () => {
+  const pw  = document.getElementById('password').value;
+  const ui  = document.getElementById('pw-strength-ui');
+  const lbl = document.getElementById('pw-strength-label');
+  if (!pw) { ui.style.display = 'none'; return; }
+  ui.style.display = 'block';
+  const s = calcStrength(pw);
+  for (let i = 1; i <= 4; i++) {
+    const seg = document.getElementById('pw-seg-' + i);
+    seg.className = 'pw-strength-seg' + (i <= s.level + 1 ? ' ' + s.cls : '');
+  }
+  lbl.textContent = s.label;
+  lbl.className   = 'pw-strength-label ' + s.cls;
+  if (pw.length >= 8) clearError('password');
+});
+
+document.getElementById('password-confirm').addEventListener('input', () => {
+  const pw  = document.getElementById('password').value;
+  const pw2 = document.getElementById('password-confirm').value;
+  const ok  = document.getElementById('password-confirm-success');
+  if (!pw2) { ok.classList.remove('show'); return; }
+  if (pw === pw2) {
+    clearError('password-confirm');
+    ok.classList.add('show');
+  } else {
+    setError('password-confirm', 'Passwords do not match.');
+    ok.classList.remove('show');
+  }
+});
+
+// ── Real-time step-1 validation ──────────────────────────────────────────────
+['first-name', 'last-name', 'organisation'].forEach(id => {
+  document.getElementById(id).addEventListener('blur', () => {
+    if (!document.getElementById(id).value.trim()) setError(id, document.getElementById(id + '-error').textContent);
+    else clearError(id);
+  });
+});
+document.getElementById('email').addEventListener('blur', () => {
+  const v = document.getElementById('email').value.trim();
+  if (!v)                                      { setError('email', 'Email is required.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))  { setError('email', 'Please enter a valid email address.'); return; }
+  clearError('email');
+});
+
+// ── Form submit ──────────────────────────────────────────────────────────────
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearAlert();
+
+  // Validate terms
+  if (!document.getElementById('terms').checked) {
+    const el = document.getElementById('terms-error');
+    el.classList.add('show');
+    return;
+  }
+  document.getElementById('terms-error').classList.remove('show');
+
+  const btn = document.getElementById('submit-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  // Simulate account creation (demo — no real backend auth)
+  await new Promise(r => setTimeout(r, 1000));
+  btn.classList.remove('loading');
+  btn.disabled = false;
+
+  showAlert('Account created! Redirecting to dashboard…', 'success');
+  setTimeout(() => { window.location.href = '/dashboard'; }, 1200);
+});
+
+// ── Demo shortcut ────────────────────────────────────────────────────────────
+function demoSignup() {
+  showAlert('Entering GridWise AI as Demo Operator…', 'success');
+  setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+}
+</script>
+
+</body>
+</html>

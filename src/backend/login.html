@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — GridWise AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #388bfd;
+      --green:    #3fb950;
+      --yellow:   #d29922;
+      --red:      #f85149;
+      --font:     -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: linear-gradient(160deg, #0d1117 0%, #0d1f35 60%, #0d1117 100%);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-panel::before {
+      content: "";
+      position: absolute;
+      top: -200px; left: -100px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(56,139,253,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--text); text-decoration: none; margin-bottom: auto; }
+    .logo-icon { font-size: 24px; }
+    .left-content { margin-bottom: auto; }
+    .left-content h2 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.2; }
+    .left-content h2 span { color: var(--accent); }
+    .left-content p { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 36px; }
+    .feature-list { display: flex; flex-direction: column; gap: 16px; }
+    .feature-item { display: flex; align-items: flex-start; gap: 12px; }
+    .feature-check { width: 20px; height: 20px; background: rgba(63,185,80,.15); border: 1px solid rgba(63,185,80,.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; color: var(--green); }
+    .feature-text { font-size: 14px; color: var(--muted); line-height: 1.5; }
+    .feature-text strong { color: var(--text); }
+    .left-footer { font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 20px; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 60px;
+      background: var(--bg);
+    }
+    .auth-box { width: 100%; max-width: 420px; }
+    .auth-header { text-align: center; margin-bottom: 36px; }
+    .auth-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .auth-header p { font-size: 14px; color: var(--muted); }
+    .auth-header a { color: var(--accent); text-decoration: none; }
+    .auth-header a:hover { text-decoration: underline; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .form-required { color: var(--red); margin-left: 2px; }
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,139,253,.15); }
+    .form-input::placeholder { color: var(--muted); }
+    .form-input.error { border-color: var(--red); }
+    .form-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .form-error { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+    .form-error.show { display: block; }
+
+    /* Password wrapper */
+    .pw-wrap { position: relative; }
+    .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; }
+    .pw-toggle:hover { color: var(--text); }
+
+    /* Row layout */
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Remember / forgot */
+    .form-footer-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+    .checkbox-label input { accent-color: var(--accent); width: 14px; height: 14px; }
+    .forgot-link { font-size: 13px; color: var(--accent); text-decoration: none; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .15s;
+      font-family: var(--font);
+      position: relative;
+    }
+    .btn-submit:hover { opacity: .88; }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-submit .spinner { display: none; }
+    .btn-submit.loading .spinner { display: inline; }
+    .btn-submit.loading .btn-text { opacity: 0; }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    /* Demo login */
+    .demo-btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; display: none; }
+    .alert.show { display: block; }
+    .alert-error { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.3); color: var(--red); }
+    .alert-success { background: rgba(63,185,80,.1); border: 1px solid rgba(63,185,80,.3); color: var(--green); }
+
+    .auth-bottom { text-align: center; margin-top: 28px; font-size: 13px; color: var(--muted); }
+    .auth-bottom a { color: var(--accent); text-decoration: none; }
+    .auth-bottom a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      body { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+  <a class="logo" href="/">
+    <span class="logo-icon">⚡</span>
+    GridWise AI
+  </a>
+  <div class="left-content">
+    <h2>Welcome back,<br><span>Operator</span></h2>
+    <p>Sign in to access real-time grid intelligence, IBM Bob operator advisor, and the full analytics dashboard.</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-check">✓</div>
+        <div class="feature-text"><strong>24-hour load forecast</strong> — XGBoost model with R²=0.90 test accuracy</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-check">✓</div>
+        <div class="feature-text"><strong>Asset anomaly detection</strong> — NORMAL / WARNING / CRITICAL with nighttime suppression</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-check">✓</div>
+        <div class="feature-text"><strong>Evidence-based RCA</strong> — separates weather faults from equipment faults</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-check">✓</div>
+        <div class="feature-text"><strong>IBM Bob advisor</strong> — 9 MCP tools, computed results, no fabricated numbers</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-check">✓</div>
+        <div class="feature-text"><strong>BESS optimisation</strong> — priority-order dispatch with full SOC constraints</div>
+      </div>
+    </div>
+  </div>
+  <div class="left-footer">
+    GridWise AI &nbsp;·&nbsp; IBM Bob AI Hackathon &nbsp;·&nbsp; Team Outliers<br>
+    <span style="color:var(--yellow)">All data is SYNTHETIC / DEMO — not real telemetry</span>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="auth-box">
+
+    <div class="auth-header">
+      <h1>Sign in to GridWise AI</h1>
+      <p>Don't have an account? <a href="/signup">Create one free</a></p>
+    </div>
+
+    <div class="alert alert-error" id="form-alert"></div>
+
+    <form id="login-form" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address <span class="form-required">*</span></label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="operator@gridwise.ai" autocomplete="email" required />
+        <div class="form-error" id="email-error">Please enter a valid email address.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password <span class="form-required">*</span></label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+          <button type="button" class="pw-toggle" id="pw-toggle" title="Toggle password visibility">👁</button>
+        </div>
+        <div class="form-error" id="password-error">Password is required.</div>
+      </div>
+
+      <div class="form-footer-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="remember" />
+          Remember me
+        </label>
+        <a class="forgot-link" href="#" onclick="showForgot(); return false;">Forgot password?</a>
+      </div>
+
+      <button class="btn-submit" type="submit" id="submit-btn">
+        <span class="btn-text">Sign in</span>
+        <span class="spinner">Signing in…</span>
+      </button>
+
+      <div class="divider"><span>or continue with demo</span></div>
+
+      <button type="button" class="demo-btn" onclick="demoLogin()">
+        <span>⚡</span> Sign in as Demo Operator
+      </button>
+
+    </form>
+
+    <div class="auth-bottom">
+      New to GridWise AI? <a href="/signup">Create a free account</a><br>
+      <span style="font-size:11px;margin-top:6px;display:block">
+        <a href="/" style="color:var(--muted)">← Back to home</a>
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Password toggle ────────────────────────────────────────────────────────
+document.getElementById('pw-toggle').addEventListener('click', () => {
+  const input = document.getElementById('password');
+  const btn = document.getElementById('pw-toggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+});
+
+// ── Validation helpers ─────────────────────────────────────────────────────
+function setError(id, msg) {
+  const el = document.getElementById(id + '-error');
+  const input = document.getElementById(id);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+  if (input) input.classList.add('error');
+}
+function clearError(id) {
+  const el = document.getElementById(id + '-error');
+  const input = document.getElementById(id);
+  if (el) el.classList.remove('show');
+  if (input) input.classList.remove('error');
+}
+function showAlert(msg, type = 'error') {
+  const el = document.getElementById('form-alert');
+  el.textContent = msg;
+  el.className = 'alert show alert-' + type;
+}
+function clearAlert() {
+  const el = document.getElementById('form-alert');
+  el.className = 'alert';
+}
+
+// ── Real-time validation ───────────────────────────────────────────────────
+document.getElementById('email').addEventListener('blur', () => {
+  const v = document.getElementById('email').value.trim();
+  if (!v) { setError('email', 'Email is required.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { setError('email', 'Please enter a valid email address.'); return; }
+  clearError('email');
+});
+
+document.getElementById('password').addEventListener('blur', () => {
+  if (!document.getElementById('password').value) {
+    setError('password', 'Password is required.');
+  } else {
+    clearError('password');
+  }
+});
+
+// ── Form submit ────────────────────────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearAlert();
+  let valid = true;
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email) { setError('email', 'Email is required.'); valid = false; }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('email', 'Please enter a valid email address.'); valid = false; }
+  else clearError('email');
+
+  if (!password) { setError('password', 'Password is required.'); valid = false; }
+  else clearError('password');
+
+  if (!valid) return;
+
+  const btn = document.getElementById('submit-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  // Simulate auth (demo — no real backend auth)
+  await new Promise(r => setTimeout(r, 800));
+  btn.classList.remove('loading');
+  btn.disabled = false;
+
+  // Demo: accept any valid email + non-empty password
+  if (password.length < 1) {
+    showAlert('Invalid email or password. Try the demo login below.');
+    return;
+  }
+
+  showAlert('Login successful! Redirecting to dashboard…', 'success');
+  setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+});
+
+// ── Demo login ─────────────────────────────────────────────────────────────
+function demoLogin() {
+  document.getElementById('email').value = 'demo@gridwise.ai';
+  document.getElementById('password').value = 'demo1234';
+  clearError('email'); clearError('password'); clearAlert();
+  showAlert('Demo credentials filled. Signing in…', 'success');
+  setTimeout(() => { window.location.href = '/dashboard'; }, 1200);
+}
+
+// ── Forgot password ────────────────────────────────────────────────────────
+function showForgot() {
+  showAlert('Password reset is not available in this demo. Use "Sign in as Demo Operator" to access the dashboard.', 'error');
+}
+</script>
+
+</body>
+</html>

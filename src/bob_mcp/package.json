@@ -1,0 +1,22 @@
+{
+  "name": "gridwise-bob-mcp",
+  "version": "1.0.0",
+  "description": "IBM Bob MCP server for GridWise AI — Grid Load Optimisation & Renewable Energy Advisor",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "bin": {
+    "gridwise-bob-mcp": "./build/index.js"
+  },
+  "files": ["build"],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

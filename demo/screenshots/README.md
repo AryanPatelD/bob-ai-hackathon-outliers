@@ -1,26 +1,24 @@
 # Screenshots
 
-Place your application screenshots in this folder.
+This directory contains HTML screenshot mockups of the GridWise AI operator dashboard.
 
-## Naming Convention
+> NOTE: These are HTML mockups showing the dashboard UI with representative data.
+> For live screenshots, run the application and use a browser screenshot tool.
 
-Name your screenshots sequentially so they appear in logical order:
+## Files
 
-  01-landing-page.png       ← First thing a user sees
-  02-main-feature.png       ← Your primary feature in action
-  03-output-or-results.png  ← The result / value delivered
-  04-additional-feature.png ← Any other notable screen
+| File | Description |
+|---|---|
+| `screenshot-01-overview.html` | Overview dashboard — grid status, active anomalies, curtailment avoided |
+| `screenshot-02-rca.html` | Asset Diagnosis — SOL-02 inverter fault, 49.8 MW unexplained loss |
+| `screenshot-03-optimisation-bob.html` | Grid Optimisation (Scenario B) + Bob generating operator brief |
 
-## Requirements
+## To Generate Live Screenshots
 
-- Minimum: 3 screenshots
-- Format: PNG or JPG
-- Show the application running with real (or realistic mock) data
-- Avoid screenshots of empty states or placeholder data
-- Captions are not required but appreciated
+1. Start the API: `uvicorn src.backend.main:app --port 8000 --reload`
+2. Open `http://localhost:8000/dashboard` in Chrome/Firefox
+3. Navigate to each page and use browser DevTools > Screenshot
 
-## Tips
+## Data Note
 
-- Use a consistent browser window size across all screenshots
-- Highlight key UI elements with arrows/circles if helpful (use any image editor)
-- Include a screenshot showing IBM technology integration if applicable
+All values shown in screenshots are SYNTHETIC/DEMO data — not real grid telemetry.

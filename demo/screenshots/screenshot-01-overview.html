@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GridWise AI — Screenshot 1: Overview Dashboard</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
+  .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; align-items: center; gap: 12px; margin: -20px -20px 20px; }
+  .header h1 { font-size: 15px; font-weight: 600; }
+  .badge { background: #d29922; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+  .stat { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .stat .label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .5px; }
+  .stat .value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .stat .unit { font-size: 13px; color: #8b949e; }
+  .ok .value { color: #3fb950; }
+  .warn .value { color: #d29922; }
+  .crit .value { color: #f85149; }
+  .info .value { color: #388bfd; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 18px; }
+  .card h2 { font-size: 12px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 14px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .risk { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .risk-LOW { background: rgba(63,185,80,.15); color: #3fb950; }
+  .risk-MEDIUM { background: rgba(210,153,34,.15); color: #d29922; }
+  .risk-HIGH { background: rgba(240,136,62,.15); color: #f0883e; }
+  .caption { text-align: center; color: #8b949e; font-size: 12px; margin-top: 20px; padding: 12px; background: #161b22; border-radius: 6px; }
+  .note { color: #d29922; font-size: 11px; background: rgba(210,153,34,.1); padding: 6px 12px; border-radius: 4px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <span style="font-size:18px">⚡</span>
+  <h1>GridWise AI — Operator Dashboard</h1>
+  <span class="badge">SYNTHETIC DATA</span>
+  <div style="flex:1"></div>
+  <span style="width:8px;height:8px;border-radius:50%;background:#3fb950;display:inline-block"></span>
+  <span style="font-size:12px;color:#8b949e;margin-left:6px">API Connected — http://localhost:8000</span>
+</div>
+
+<div class="note">SCREENSHOT 1 of 3 — Overview Dashboard. All values are SYNTHETIC/DEMO data.</div>
+
+<div class="grid-4">
+  <div class="stat info"><div class="label">Current Demand</div><div class="value">1,342</div><div class="unit">MW (forecast)</div></div>
+  <div class="stat ok"><div class="label">Reserve Margin</div><div class="value">34.2</div><div class="unit">% — LOW risk</div></div>
+  <div class="stat info"><div class="label">Renewable Generation</div><div class="value">487</div><div class="unit">MW total</div></div>
+  <div class="stat ok"><div class="label">Grid Risk</div><div class="value" style="font-size:20px"><span class="risk risk-LOW">LOW</span></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Active Anomalies (Last 24h)</h2>
+    <div style="display:flex;gap:16px">
+      <div class="stat crit" style="flex:1"><div class="label">Critical</div><div class="value" style="font-size:22px">1</div><div class="unit">asset</div></div>
+      <div class="stat" style="flex:1"><div class="label">Warning</div><div class="value" style="font-size:22px;color:#8b949e">0</div><div class="unit">assets</div></div>
+      <div class="stat ok" style="flex:1"><div class="label">Normal</div><div class="value" style="font-size:22px">4</div><div class="unit">assets</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Curtailment Avoided (24h)</h2>
+    <div style="display:flex;gap:16px">
+      <div class="stat warn" style="flex:1"><div class="label">Potential</div><div class="value" style="font-size:22px">284</div><div class="unit">MWh</div></div>
+      <div class="stat ok" style="flex:1"><div class="label">Avoided</div><div class="value" style="font-size:22px">241</div><div class="unit">MWh (84.9%)</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  GridWise AI — Phase 2 Operator Dashboard<br>
+  Screenshot 1: Overview — showing grid status, active anomaly (SOL-02 CRITICAL), curtailment avoided<br>
+  Data: SYNTHETIC/DEMO — not real telemetry
+</div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GridWise AI — Screenshot 3: Grid Optimisation + Bob Advisor</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
+  .note { color: #d29922; font-size: 11px; background: rgba(210,153,34,.1); padding: 6px 12px; border-radius: 4px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .stat { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .stat .label { font-size: 11px; color: #8b949e; text-transform: uppercase; }
+  .stat .value { font-size: 22px; font-weight: 700; margin: 4px 0; }
+  .crit .value { color: #f85149; }
+  .ok .value { color: #3fb950; }
+  .warn .value { color: #d29922; }
+  .info .value { color: #388bfd; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card h2 { font-size: 12px; font-weight: 600; color: #8b949e; text-transform: uppercase; margin-bottom: 12px; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tbl th { padding: 6px 8px; border-bottom: 1px solid #30363d; font-size: 10px; color: #8b949e; text-transform: uppercase; text-align: left; }
+  .tbl td { padding: 7px 8px; border-bottom: 1px solid rgba(48,54,61,.5); font-variant-numeric: tabular-nums; }
+  .risk { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+  .risk-HIGH { background: rgba(240,136,62,.15); color: #f0883e; }
+  .risk-MEDIUM { background: rgba(210,153,34,.15); color: #d29922; }
+  .risk-LOW { background: rgba(63,185,80,.15); color: #3fb950; }
+  .bob-panel { height: 400px; display: flex; flex-direction: column; }
+  .bob-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; margin-bottom: 10px; }
+  .msg { max-width: 90%; padding: 9px 13px; border-radius: 7px; font-size: 12px; line-height: 1.5; }
+  .msg-user { align-self: flex-end; background: #388bfd; color: #fff; }
+  .msg-bob { align-self: flex-start; background: #21262d; border: 1px solid #30363d; white-space: pre-wrap; }
+  .bob-input-mock { display: flex; gap: 6px; }
+  .bob-input-mock input { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 7px 10px; color: #e6edf3; font-size: 12px; }
+  .bob-input-mock button { background: #388bfd; color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; }
+  .legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; margin-bottom: 10px; }
+  .tag { padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .tag-ml { background: rgba(188,140,255,.15); color: #bc8cff; }
+  .tag-rule { background: rgba(63,185,80,.12); color: #3fb950; }
+  .tag-rca { background: rgba(210,153,34,.12); color: #d29922; }
+  .caption { text-align: center; color: #8b949e; font-size: 12px; margin-top: 20px; padding: 12px; background: #161b22; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="note">SCREENSHOT 3 of 3 — Grid Optimisation + Bob Advisor. All values are SYNTHETIC/DEMO data.</div>
+
+<div class="grid-4">
+  <div class="stat crit"><div class="label">Deficit Periods</div><div class="value">12</div><div style="font-size:11px;color:#8b949e">hours</div></div>
+  <div class="stat ok"><div class="label">Surplus Periods</div><div class="value">8</div><div style="font-size:11px;color:#8b949e">hours</div></div>
+  <div class="stat info"><div class="label">BESS Discharge</div><div class="value">178</div><div style="font-size:11px;color:#8b949e">MWh</div></div>
+  <div class="stat warn"><div class="label">Backup Required</div><div class="value">YES</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Interval Dispatch Actions — Scenario B (Demand Spike) <span class="tag tag-rule">DETERMINISTIC DISPATCH</span></h2>
+    <table class="tbl">
+      <thead><tr><th>Time</th><th>Demand MW</th><th>Renewable MW</th><th>Net MW</th><th>BESS MW</th><th>DR MW</th><th>Backup MW</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>16:00</td><td>1,480</td><td>95</td><td style="color:#f0883e">-385</td><td style="color:#f0883e">-50</td><td>150</td><td style="color:#f85149">185</td><td style="font-size:10px;color:#8b949e">DEFICIT: BESS+DR+Backup</td></tr>
+        <tr><td>17:00</td><td>1,680</td><td>52</td><td style="color:#f85149">-628</td><td style="color:#f0883e">-50</td><td>150</td><td style="color:#f85149">428</td><td style="font-size:10px;color:#8b949e">DEFICIT: BESS+DR+Backup</td></tr>
+        <tr><td>18:00</td><td>2,100</td><td>8</td><td style="color:#f85149">-892</td><td style="color:#f0883e">-35</td><td>150</td><td style="color:#f85149">707</td><td style="font-size:10px;color:#8b949e">DEFICIT: DR+Backup</td></tr>
+        <tr><td>19:00</td><td>2,080</td><td>5</td><td style="color:#f85149">-875</td><td>0</td><td>150</td><td style="color:#f85149">725</td><td style="font-size:10px;color:#8b949e">DEFICIT: DR+Backup (BESS empty)</td></tr>
+        <tr><td>20:00</td><td>1,820</td><td>5</td><td style="color:#f85149">-615</td><td>0</td><td>150</td><td style="color:#f85149">465</td><td style="font-size:10px;color:#8b949e">DEFICIT: DR+Backup</td></tr>
+        <tr><td>21:00</td><td>1,450</td><td>5</td><td style="color:#f85149">-245</td><td>0</td><td>150</td><td style="color:#f85149">95</td><td style="font-size:10px;color:#8b949e">DEFICIT: DR+Backup</td></tr>
+        <tr><td>22:00</td><td>1,180</td><td>5</td><td style="color:#d29922">-75</td><td>0</td><td>75</td><td>0</td><td style="font-size:10px;color:#8b949e">DEFICIT: DR only</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card bob-panel">
+    <h2>AI Operator Advisor <span class="tag tag-rule">BOB + COMPUTED BACKEND</span></h2>
+    <div class="legend">
+      <span class="tag tag-ml">ML Prediction</span>
+      <span class="tag tag-rule">Rule-Based</span>
+      <span class="tag tag-rca">Heuristic RCA</span>
+    </div>
+    <div class="bob-msgs">
+      <div class="msg msg-user">Generate the operator optimisation brief for scenario B.</div>
+      <div class="msg msg-bob">=== OPERATOR BRIEF (AGGREGATED FROM ALL GRIDWISE BACKEND SERVICES) ===
+Data Types: MEASURED | MODEL PREDICTIONS | RULE/OPTIMISATION RESULTS | AI EXPLANATIONS
+
+GRID STATUS
+  Grid Load     : 2,100.0 MW [ML PREDICTION]
+  Reserve Margin: 17.3% [RULE-BASED]
+  Overall Risk  : HIGH [RULE-BASED]
+
+DEMAND SPIKE RISKS
+  Critical Periods : 0
+  High Risk Periods: 4
+  First High: 18:00 (2,100 MW, reserve 17.3%)
+
+UNDERPERFORMING ASSETS
+  All assets performing normally in this scenario.
+
+RECOMMENDED ACTIONS [RULE-BASED DISPATCH]
+  BESS dispatch activated for 3 intervals
+  Demand response for 7 intervals
+  BACKUP GENERATION required for 4 intervals
+
+BESS PLAN
+  Total Discharge: 135.0 MWh
+  Total Charge   : 42.0 MWh
+  Final SOC      : 10.0% (started: 35.0%)
+
+NOTE: All values retrieved from GridWise backend — not fabricated.</div>
+    </div>
+    <div class="bob-input-mock">
+      <input type="text" value="How can we handle tonight's demand peak?" readonly />
+      <button>Ask</button>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  GridWise AI — Grid Optimisation + AI Operator Advisor<br>
+  Screenshot 3: Scenario B dispatch table + Bob generating computed operator brief<br>
+  Data Type: DETERMINISTIC DISPATCH + BOB MCP TOOL CALLS | SYNTHETIC/DEMO data
+</div>
+</body>
+</html>

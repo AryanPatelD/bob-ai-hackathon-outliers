@@ -1,15 +1,13 @@
-https://youtu.be/your-demo-video-link-here
+# Demo Video
 
-Replace the URL above with a link to your demo video.
+A demo video for GridWise AI will be recorded and hosted.
 
-Accepted platforms:
-  - YouTube (public or unlisted)
-  - Loom (https://www.loom.com/share/...)
-  - IBM Box (https://ibm.box.com/s/...)
-  - Google Drive (set to "Anyone with the link can view")
+To record the demo:
+1. Start the API: uvicorn src.backend.main:app --port 8000 --reload
+2. Open the dashboard: http://localhost:8000/dashboard
+3. Walk through Scenario B (demand spike) and Scenario D (combined)
+4. Ask Bob: "Generate the operator optimisation brief"
 
-Video requirements:
-  - Length: 3–5 minutes maximum
-  - Must show the application running (not just slides)
-  - Should walk through at least one key feature end-to-end
-  - Audio narration strongly recommended
+Suggested hosting: YouTube (unlisted) or Loom
+
+Demo video URL: [To be added before submission]

@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridWise AI — Operator Dashboard</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #388bfd;
+      --green:    #3fb950;
+      --yellow:   #d29922;
+      --orange:   #f0883e;
+      --red:      #f85149;
+      --purple:   #bc8cff;
+      --font:     -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+    html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; }
+
+    /* ── Layout ───────────────────────────────────────────────────────── */
+    #app { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 52px 1fr; height: 100vh; }
+    header { grid-column: 1 / -1; background: var(--surface); border-bottom: 1px solid var(--border);
+             display: flex; align-items: center; padding: 0 20px; gap: 14px; }
+    header h1 { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+    header .badge { font-size: 10px; background: var(--yellow); color: #000; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+    header .spacer { flex: 1; }
+    header .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    header .status-label { font-size: 12px; color: var(--muted); }
+    header .api-url { font-size: 11px; color: var(--muted); }
+
+    nav { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 0; overflow-y: auto; }
+    nav .nav-section { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--muted);
+                       padding: 8px 16px 4px; text-transform: uppercase; }
+    nav a { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px;
+             color: var(--muted); text-decoration: none; border-left: 3px solid transparent; cursor: pointer; }
+    nav a:hover { color: var(--text); background: var(--surface2); }
+    nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(56,139,253,.08); }
+    nav a .icon { font-size: 15px; width: 18px; text-align: center; }
+
+    main { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Cards & grids ───────────────────────────────────────────────── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+    .card h2 { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .4px;
+               text-transform: uppercase; margin-bottom: 14px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+    /* ── Stat tiles ──────────────────────────────────────────────────── */
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+            padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .stat .value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat .unit  { font-size: 13px; color: var(--muted); }
+    .stat .sub   { font-size: 11px; color: var(--muted); }
+    .stat.ok .value    { color: var(--green); }
+    .stat.warn .value  { color: var(--yellow); }
+    .stat.high .value  { color: var(--orange); }
+    .stat.crit .value  { color: var(--red); }
+    .stat.info .value  { color: var(--accent); }
+
+    /* ── Risk badge ──────────────────────────────────────────────────── */
+    .risk { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+    .risk-LOW      { background: rgba(63,185,80,.15);  color: var(--green); }
+    .risk-MEDIUM   { background: rgba(210,153,34,.15); color: var(--yellow); }
+    .risk-HIGH     { background: rgba(240,136,62,.15); color: var(--orange); }
+    .risk-CRITICAL { background: rgba(248,81,73,.18);  color: var(--red); }
+    .risk-NORMAL   { background: rgba(63,185,80,.15);  color: var(--green); }
+    .risk-WARNING  { background: rgba(210,153,34,.15); color: var(--yellow); }
+
+    /* ── Table ───────────────────────────────────────────────────────── */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tbl th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border);
+              font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+    .tbl td { padding: 9px 10px; border-bottom: 1px solid rgba(48,54,61,.5); }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: var(--surface2); }
+
+    /* ── Chart canvas ────────────────────────────────────────────────── */
+    .chart-wrap { position: relative; height: 220px; }
+    canvas { display: block; }
+
+    /* ── Timeline bar chart ──────────────────────────────────────────── */
+    .bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 100px; }
+    .bar-chart .bar { flex: 1; border-radius: 3px 3px 0 0; min-width: 4px; cursor: pointer; transition: opacity .15s; }
+    .bar-chart .bar:hover { opacity: .75; }
+
+    /* ── Asset cards ─────────────────────────────────────────────────── */
+    .asset-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+                  padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .asset-card .name { font-weight: 600; font-size: 13px; }
+    .asset-card .type { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+    .asset-card .perf-bar { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+    .asset-card .perf-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+    .asset-card .metrics { display: flex; gap: 12px; }
+    .asset-card .metric { flex: 1; }
+    .asset-card .metric .v { font-size: 16px; font-weight: 700; }
+    .asset-card .metric .l { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
+    /* ── Chat / Bob panel ────────────────────────────────────────────── */
+    .bob-panel { display: flex; flex-direction: column; height: 500px; }
+    .bob-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+    .msg { max-width: 88%; padding: 10px 14px; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+    .msg-user { align-self: flex-end; background: var(--accent); color: #fff; border-radius: 8px 8px 2px 8px; }
+    .msg-bob  { align-self: flex-start; background: var(--surface2); border: 1px solid var(--border);
+                border-radius: 8px 8px 8px 2px; white-space: pre-wrap; font-family: inherit; }
+    .msg-error { border-color: var(--red); color: var(--red); }
+    .msg-loading { color: var(--muted); font-style: italic; }
+    .bob-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+    .bob-input input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+                       padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; }
+    .bob-input input:focus { border-color: var(--accent); }
+    .bob-input button { background: var(--accent); color: #fff; border: none; border-radius: 6px;
+                        padding: 8px 16px; font-size: 13px; cursor: pointer; }
+    .bob-input button:hover { opacity: .85; }
+    .bob-input button:disabled { opacity: .5; cursor: not-allowed; }
+    .suggested-queries { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 0; }
+    .suggested-queries button { background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+                                border-radius: 14px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+    .suggested-queries button:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Misc ────────────────────────────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: contents; }
+    .loading { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+    .error-msg { color: var(--red); font-size: 13px; padding: 12px; background: rgba(248,81,73,.08);
+                 border: 1px solid rgba(248,81,73,.3); border-radius: 6px; }
+    .label-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .section-title { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .4px;
+                     text-transform: uppercase; margin-bottom: 12px; }
+    .scenario-bar { display: flex; gap: 8px; }
+    .scenario-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+                    border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; }
+    .scenario-btn:hover, .scenario-btn.active { border-color: var(--accent); color: var(--accent); }
+    pre.brief { font-family: "Consolas", "Courier New", monospace; font-size: 12px; line-height: 1.6;
+                background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+                padding: 14px; overflow: auto; max-height: 520px; white-space: pre-wrap; }
+    .inline-badge { font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+    .tag-measured    { background: rgba(56,139,253,.15); color: var(--accent); }
+    .tag-predicted   { background: rgba(188,140,255,.15); color: var(--purple); }
+    .tag-rule        { background: rgba(63,185,80,.12); color: var(--green); }
+    .tag-ai          { background: rgba(210,153,34,.12); color: var(--yellow); }
+    .data-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <header>
+    <span style="font-size:20px;">⚡</span>
+    <h1>GridWise AI — Operator Dashboard</h1>
+    <span class="badge">SYNTHETIC DATA</span>
+    <div class="spacer"></div>
+    <div class="status-dot" id="api-dot"></div>
+    <span class="status-label" id="api-status">Connecting…</span>
+    <span class="api-url" id="api-url-label"></span>
+  </header>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-section">Grid</div>
+    <a class="active" data-page="overview"><span class="icon">📊</span>Overview</a>
+    <a data-page="load-forecast"><span class="icon">📈</span>Load Forecast</a>
+    <a data-page="grid-risk"><span class="icon">⚠️</span>Grid Risk</a>
+    <div class="nav-section">Renewables</div>
+    <a data-page="renewable-perf"><span class="icon">☀️</span>Asset Performance</a>
+    <a data-page="asset-diagnosis"><span class="icon">🔍</span>Asset Diagnosis</a>
+    <div class="nav-section">Optimisation</div>
+    <a data-page="grid-opt"><span class="icon">⚡</span>Grid Optimisation</a>
+    <a data-page="curtailment"><span class="icon">🔋</span>Curtailment</a>
+    <div class="nav-section">Advisor</div>
+    <a data-page="bob-advisor"><span class="icon">🤖</span>AI Operator Advisor</a>
+  </nav>
+
+  <!-- Main content -->
+  <main id="main-content">
+
+    <!-- ====== OVERVIEW ====== -->
+    <div class="page active" id="page-overview">
+      <div class="grid-4" id="overview-stats">
+        <div class="stat info"><div class="label">Current Demand</div><div class="value" id="ov-demand">—</div><div class="unit">MW</div></div>
+        <div class="stat" id="ov-reserve-stat"><div class="label">Reserve Margin</div><div class="value" id="ov-reserve">—</div><div class="unit">%</div></div>
+        <div class="stat info"><div class="label">Renewable Generation</div><div class="value" id="ov-ren">—</div><div class="unit">MW</div></div>
+        <div class="stat" id="ov-risk-stat"><div class="label">Grid Risk</div><div class="value" id="ov-risk">—</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Active Anomalies</h2>
+          <div id="ov-anomalies" class="loading">Loading…</div>
+        </div>
+        <div class="card">
+          <h2>Curtailment Avoided (24h)</h2>
+          <div id="ov-curtailment" class="loading">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== LOAD FORECAST ====== -->
+    <div class="page" id="page-load-forecast">
+      <div class="card">
+        <h2>24-Hour Load Forecast <span class="inline-badge tag-predicted">ML MODEL</span></h2>
+        <div class="data-legend">
+          <span class="inline-badge tag-predicted">Model prediction (XGBoost)</span>
+          <span class="inline-badge tag-rule">Risk classification</span>
+        </div>
+        <div class="chart-wrap"><canvas id="forecast-chart"></canvas></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Forecast Summary</h2>
+          <div id="fc-summary" class="loading">Loading…</div>
+        </div>
+        <div class="card">
+          <h2>Spike Risk Timeline</h2>
+          <div id="fc-risk-timeline" class="loading">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== GRID RISK ====== -->
+    <div class="page" id="page-grid-risk">
+      <div class="card">
+        <h2>Demand Spike Risk Assessment <span class="inline-badge tag-rule">RULE-BASED</span></h2>
+        <div id="risk-table" class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ====== RENEWABLE PERFORMANCE ====== -->
+    <div class="page" id="page-renewable-perf">
+      <div class="card">
+        <h2>Renewable Asset Performance <span class="inline-badge tag-rule">ANOMALY DETECTION</span></h2>
+        <div id="asset-cards" class="grid-auto loading">Loading…</div>
+      </div>
+      <div class="card">
+        <h2>Anomaly Details</h2>
+        <div id="anomaly-table" class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ====== ASSET DIAGNOSIS ====== -->
+    <div class="page" id="page-asset-diagnosis">
+      <div class="card">
+        <h2>Asset Root Cause Analysis <span class="inline-badge tag-rule">HEURISTIC RCA</span></h2>
+        <div style="margin-bottom:12px; display:flex; gap:8px; align-items:center;">
+          <label style="font-size:12px;color:var(--muted);">Select Asset:</label>
+          <select id="asset-select" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;">
+            <option value="">-- choose --</option>
+            <option value="SOL-01">SOL-01 — Sunfield Alpha</option>
+            <option value="SOL-02">SOL-02 — Sunfield Beta</option>
+            <option value="SOL-03">SOL-03 — Desert Crown</option>
+            <option value="WIN-01">WIN-01 — Coastal Breeze</option>
+            <option value="WIN-02">WIN-02 — Highland Gust</option>
+          </select>
+          <button onclick="loadDiagnosis()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px;">Diagnose</button>
+        </div>
+        <div id="diagnosis-panel" style="color:var(--muted);font-size:13px;">Select an asset and click Diagnose.</div>
+      </div>
+    </div>
+
+    <!-- ====== GRID OPTIMISATION ====== -->
+    <div class="page" id="page-grid-opt">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="font-size:13px;color:var(--muted);">Scenario:</span>
+        <div class="scenario-bar">
+          <button class="scenario-btn active" data-scenario="">Live</button>
+          <button class="scenario-btn" data-scenario="A">A — Normal</button>
+          <button class="scenario-btn" data-scenario="B">B — Spike</button>
+          <button class="scenario-btn" data-scenario="C">C — Surplus</button>
+        </div>
+        <span id="opt-scenario-desc" style="font-size:12px;color:var(--muted);"></span>
+      </div>
+      <div class="grid-4" id="opt-stats">
+        <div class="stat info"><div class="label">Deficit Periods</div><div class="value" id="opt-deficit">—</div></div>
+        <div class="stat ok"><div class="label">Surplus Periods</div><div class="value" id="opt-surplus">—</div></div>
+        <div class="stat info"><div class="label">BESS Discharge</div><div class="value" id="opt-bess-dis">—</div><div class="unit">MWh</div></div>
+        <div class="stat" id="opt-backup-stat"><div class="label">Backup Required</div><div class="value" id="opt-backup">—</div></div>
+      </div>
+      <div class="card">
+        <h2>Interval Dispatch Actions <span class="inline-badge tag-rule">DETERMINISTIC DISPATCH</span></h2>
+        <div id="opt-table" class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ====== CURTAILMENT ====== -->
+    <div class="page" id="page-curtailment">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="font-size:13px;color:var(--muted);">Scenario:</span>
+        <div class="scenario-bar" id="curt-scenarios">
+          <button class="scenario-btn active" data-scenario="">Live</button>
+          <button class="scenario-btn" data-scenario="A">A — Normal</button>
+          <button class="scenario-btn" data-scenario="B">B — Spike</button>
+          <button class="scenario-btn" data-scenario="C">C — Surplus</button>
+        </div>
+      </div>
+      <div class="grid-4" id="curt-stats">
+        <div class="stat warn"><div class="label">Potential Curtailment</div><div class="value" id="curt-potential">—</div><div class="unit">MWh</div></div>
+        <div class="stat ok"><div class="label">BESS Absorbed</div><div class="value" id="curt-bess">—</div><div class="unit">MWh</div></div>
+        <div class="stat ok"><div class="label">Avoided Curtailment</div><div class="value" id="curt-avoided">—</div><div class="unit">MWh</div></div>
+        <div class="stat info"><div class="label">Reduction</div><div class="value" id="curt-pct">—</div><div class="unit">%</div></div>
+      </div>
+      <div class="card">
+        <h2>Curtailment Explanation <span class="inline-badge tag-rule">TRANSPARENT ARITHMETIC</span></h2>
+        <div id="curt-explanation" class="loading">Loading…</div>
+      </div>
+      <div class="card">
+        <h2>Interval Breakdown</h2>
+        <div id="curt-table" class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ====== BOB ADVISOR ====== -->
+    <div class="page" id="page-bob-advisor">
+      <div class="grid-2">
+        <div class="card bob-panel">
+          <h2>AI Operator Advisor</h2>
+          <div class="data-legend">
+            <span class="inline-badge tag-measured">Measured</span>
+            <span class="inline-badge tag-predicted">ML Prediction</span>
+            <span class="inline-badge tag-rule">Rule/Optimisation</span>
+            <span class="inline-badge tag-ai">AI Explanation</span>
+          </div>
+          <div class="bob-messages" id="bob-msgs"></div>
+          <div class="suggested-queries" id="suggested-queries"></div>
+          <div class="bob-input">
+            <input id="bob-input" type="text" placeholder="Ask about grid status, risks, assets…" />
+            <button id="bob-send" onclick="sendBobQuery()">Ask</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Operator Brief</h2>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <button onclick="loadBrief(null)" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;">Live Brief</button>
+            <button onclick="loadBrief('A')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;">Scenario A</button>
+            <button onclick="loadBrief('B')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;">Scenario B</button>
+            <button onclick="loadBrief('C')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;">Scenario C</button>
+          </div>
+          <pre class="brief" id="brief-text">Click a button to generate the operator brief.</pre>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ── Config ─────────────────────────────────────────────────────────── */
+const API = window.location.origin;
+
+/* ── Utility ─────────────────────────────────────────────────────────── */
+async function apiFetch(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(`API ${r.status}: ${path}`);
+  return r.json();
+}
+
+function riskClass(level) {
+  const m = { LOW: 'ok', MEDIUM: 'warn', HIGH: 'high', CRITICAL: 'crit', NORMAL: 'ok', WARNING: 'warn' };
+  return m[level] || 'info';
+}
+
+function riskBadge(level) {
+  return `<span class="risk risk-${level}">${level}</span>`;
+}
+
+function fmt(n, d = 1) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toFixed(d);
+}
+
+/* ── Navigation ──────────────────────────────────────────────────────── */
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    const page = a.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (!pageLoaded[page]) { pageLoaders[page] && pageLoaders[page](); pageLoaded[page] = true; }
+  });
+});
+
+const pageLoaded = { overview: false };
+const pageLoaders = {
+  'load-forecast': loadForecastPage,
+  'grid-risk': loadGridRisk,
+  'renewable-perf': loadRenewablePerf,
+  'asset-diagnosis': () => {},
+  'grid-opt': () => loadOptPage(currentOptScenario),
+  'curtailment': () => loadCurtailmentPage(currentCurtScenario),
+  'bob-advisor': initBobAdvisor,
+};
+
+/* ── API health check ────────────────────────────────────────────────── */
+async function checkHealth() {
+  try {
+    const d = await apiFetch('/health');
+    document.getElementById('api-dot').style.background = 'var(--green)';
+    document.getElementById('api-status').textContent = 'API Connected';
+    document.getElementById('api-url-label').textContent = API;
+    return true;
+  } catch {
+    document.getElementById('api-dot').style.background = 'var(--red)';
+    document.getElementById('api-status').textContent = 'API Offline';
+    document.getElementById('api-url-label').textContent = 'Run: uvicorn src.backend.main:app --port 8000';
+    return false;
+  }
+}
+
+/* ── Overview ────────────────────────────────────────────────────────── */
+async function loadOverview() {
+  try {
+    const [risk, anomalies, curtailment] = await Promise.all([
+      apiFetch('/grid/risk?horizon_hours=1'),
+      apiFetch('/assets/anomalies?hours=24'),
+      apiFetch('/optimisation/curtailment'),
+    ]);
+
+    const latest = risk.risk_summary?.[0];
+    if (latest) {
+      document.getElementById('ov-demand').textContent = fmt(latest.forecast_load_mw, 0);
+      const rm = (latest.reserve_margin * 100);
+      document.getElementById('ov-reserve').textContent = fmt(rm, 1);
+      const rStat = document.getElementById('ov-reserve-stat');
+      rStat.className = 'stat ' + (rm < 5 ? 'crit' : rm < 10 ? 'high' : rm < 20 ? 'warn' : 'ok');
+
+      document.getElementById('ov-risk').innerHTML = riskBadge(latest.risk_level);
+      const riskStat = document.getElementById('ov-risk-stat');
+      riskStat.className = 'stat ' + riskClass(latest.risk_level);
+    }
+
+    // Renewable from curtailment plan context
+    const firstRow = curtailment.intervals?.[0];
+
+    // Active anomalies
+    const warn = anomalies.assets_in_warning || 0;
+    const crit = anomalies.assets_in_critical || 0;
+    document.getElementById('ov-anomalies').innerHTML =
+      `<div style="display:flex;gap:16px;">
+        <div class="stat ${crit > 0 ? 'crit' : 'ok'}" style="flex:1"><div class="label">Critical</div><div class="value">${crit}</div><div class="sub">assets</div></div>
+        <div class="stat ${warn > 0 ? 'warn' : 'ok'}" style="flex:1"><div class="label">Warning</div><div class="value">${warn}</div><div class="sub">assets</div></div>
+        <div class="stat ok" style="flex:1"><div class="label">Normal</div><div class="value">${anomalies.total_assets - warn - crit}</div><div class="sub">assets</div></div>
+      </div>`;
+
+    // Curtailment
+    const s = curtailment.summary;
+    document.getElementById('ov-curtailment').innerHTML =
+      `<div class="grid-2">
+        <div class="stat warn"><div class="label">Potential</div><div class="value">${fmt(s.total_potential_curtailment_mwh)}</div><div class="unit">MWh</div></div>
+        <div class="stat ok"><div class="label">Avoided</div><div class="value">${fmt(s.total_avoided_curtailment_mwh)}</div><div class="unit">MWh (${fmt(s.curtailment_reduction_pct)}%)</div></div>
+      </div>`;
+
+    // Try to get renewable generation
+    const rf = await apiFetch('/forecast/renewables');
+    if (rf.forecasts?.length) {
+      const latest_fc = rf.forecasts.filter(f => f.timestamp === rf.forecasts[0].timestamp);
+      const total = latest_fc.reduce((s, f) => s + f.expected_generation_mw, 0);
+      document.getElementById('ov-ren').textContent = fmt(total, 0);
+    }
+  } catch (e) {
+    document.getElementById('ov-anomalies').textContent = 'Error loading data: ' + e.message;
+  }
+}
+
+/* ── Load Forecast page ──────────────────────────────────────────────── */
+async function loadForecastPage() {
+  try {
+    const [fc, risk] = await Promise.all([
+      apiFetch('/forecast/load?horizon_hours=24'),
+      apiFetch('/grid/risk?horizon_hours=24'),
+    ]);
+
+    const times = fc.forecast.map(p => {
+      const d = new Date(p.timestamp);
+      return d.getUTCHours().toString().padStart(2, '0') + ':00';
+    });
+    const loads = fc.forecast.map(p => p.forecast_load_mw);
+    const risks = risk.risk_summary.map(r => r.risk_level);
+
+    drawLineChart('forecast-chart', times, loads, risks);
+
+    const peak = Math.max(...loads);
+    const avg = loads.reduce((a, b) => a + b, 0) / loads.length;
+    const peakIdx = loads.indexOf(peak);
+    const metrics = fc.model_metrics;
+
+    document.getElementById('fc-summary').innerHTML = `
+      <table class="tbl">
+        <tr><td style="color:var(--muted)">Horizon</td><td>${fc.horizon_hours} hours</td></tr>
+        <tr><td style="color:var(--muted)">Peak Forecast</td><td>${fmt(peak, 0)} MW at ${times[peakIdx]}</td></tr>
+        <tr><td style="color:var(--muted)">Average Load</td><td>${fmt(avg, 0)} MW</td></tr>
+        ${metrics?.test ? `
+        <tr><td style="color:var(--muted)">Model MAE (test)</td><td>${fmt(metrics.test.mae, 1)} MW</td></tr>
+        <tr><td style="color:var(--muted)">Model R²  (test)</td><td>${fmt(metrics.test.r2, 3)}</td></tr>
+        ` : ''}
+      </table>`;
+
+    const riskCounts = { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 };
+    risks.forEach(r => riskCounts[r] = (riskCounts[r] || 0) + 1);
+    document.getElementById('fc-risk-timeline').innerHTML = `
+      <div class="grid-4">
+        <div class="stat ok"><div class="label">Low</div><div class="value">${riskCounts.LOW}</div><div class="sub">hours</div></div>
+        <div class="stat warn"><div class="label">Medium</div><div class="value">${riskCounts.MEDIUM}</div><div class="sub">hours</div></div>
+        <div class="stat high"><div class="label">High</div><div class="value">${riskCounts.HIGH}</div><div class="sub">hours</div></div>
+        <div class="stat crit"><div class="label">Critical</div><div class="value">${riskCounts.CRITICAL}</div><div class="sub">hours</div></div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('fc-summary').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+function drawLineChart(canvasId, labels, values, riskLevels) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const parent = canvas.parentElement;
+  canvas.width = parent.offsetWidth || 700;
+  canvas.height = parent.offsetHeight || 220;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = { top: 20, right: 20, bottom: 30, left: 55 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  const min = Math.min(...values) * 0.95;
+  const max = Math.max(...values) * 1.05;
+  const n = values.length;
+  const xStep = cw / (n - 1 || 1);
+
+  // Risk background bands
+  const riskColors = { LOW: 'rgba(63,185,80,.07)', MEDIUM: 'rgba(210,153,34,.1)', HIGH: 'rgba(240,136,62,.12)', CRITICAL: 'rgba(248,81,73,.14)' };
+  if (riskLevels) {
+    riskLevels.forEach((r, i) => {
+      const x = pad.left + i * xStep;
+      ctx.fillStyle = riskColors[r] || 'transparent';
+      ctx.fillRect(x - xStep / 2, pad.top, xStep, ch);
+    });
+  }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(48,54,61,0.6)'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    const val = max - (max - min) * (i / 4);
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(fmt(val, 0), pad.left - 6, y + 4);
+  }
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle = '#388bfd'; ctx.lineWidth = 2;
+  values.forEach((v, i) => {
+    const x = pad.left + i * xStep;
+    const y = pad.top + ch - ((v - min) / (max - min)) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Fill
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = pad.left + i * xStep;
+    const y = pad.top + ch - ((v - min) / (max - min)) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + (n - 1) * xStep, pad.top + ch);
+  ctx.lineTo(pad.left, pad.top + ch);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(56,139,253,.10)'; ctx.fill();
+
+  // X labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+  const step = Math.ceil(n / 12);
+  labels.forEach((l, i) => {
+    if (i % step === 0) ctx.fillText(l, pad.left + i * xStep, H - 6);
+  });
+}
+
+/* ── Grid Risk page ──────────────────────────────────────────────────── */
+async function loadGridRisk() {
+  try {
+    const data = await apiFetch('/grid/risk?horizon_hours=24');
+    const rows = data.risk_summary;
+    let html = `<table class="tbl"><thead><tr>
+      <th>Time</th><th>Forecast Load (MW)</th><th>Capacity (MW)</th><th>Reserve</th><th>Risk Score</th><th>Risk Level</th>
+    </tr></thead><tbody>`;
+    rows.forEach(r => {
+      const d = new Date(r.timestamp);
+      const t = d.getUTCHours().toString().padStart(2,'0') + ':00';
+      html += `<tr>
+        <td>${t}</td>
+        <td>${fmt(r.forecast_load_mw, 0)}</td>
+        <td>${fmt(r.available_capacity_mw, 0)}</td>
+        <td>${fmt(r.reserve_margin * 100, 1)}%</td>
+        <td>${fmt(r.spike_risk_score, 3)}</td>
+        <td>${riskBadge(r.risk_level)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('risk-table').innerHTML = html;
+  } catch (e) {
+    document.getElementById('risk-table').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+/* ── Renewable Performance ───────────────────────────────────────────── */
+async function loadRenewablePerf() {
+  try {
+    const [assets, anomalies] = await Promise.all([
+      apiFetch('/assets'),
+      apiFetch('/assets/anomalies?hours=24'),
+    ]);
+
+    // Merge anomaly data onto assets by asset_id
+    const anomalyMap = {};
+    anomalies.anomalies.forEach(a => { if (!anomalyMap[a.asset_id]) anomalyMap[a.asset_id] = a; });
+
+    let cardsHtml = '';
+    assets.forEach(a => {
+      const an = anomalyMap[a.asset_id] || {};
+      const pr = an.performance_ratio ?? (a.expected_generation_mw > 0 ? a.actual_generation_mw / a.expected_generation_mw : 1);
+      const sev = an.severity || 'NORMAL';
+      const fillColor = sev === 'CRITICAL' ? 'var(--red)' : sev === 'WARNING' ? 'var(--yellow)' : 'var(--green)';
+      const icon = a.asset_type === 'solar' ? '☀️' : '💨';
+      cardsHtml += `
+        <div class="asset-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="name">${icon} ${a.asset_name}</div>
+              <div class="type">${a.asset_type} · ${a.capacity_mw} MW</div>
+            </div>
+            ${riskBadge(sev)}
+          </div>
+          <div class="perf-bar"><div class="perf-fill" style="width:${Math.min(100, pr * 100).toFixed(0)}%;background:${fillColor}"></div></div>
+          <div class="metrics">
+            <div class="metric"><div class="v">${fmt(a.actual_generation_mw, 1)}</div><div class="l">Actual MW</div></div>
+            <div class="metric"><div class="v">${fmt(a.expected_generation_mw, 1)}</div><div class="l">Expected MW</div></div>
+            <div class="metric"><div class="v">${fmt(pr * 100, 0)}%</div><div class="l">Perf Ratio</div></div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('asset-cards').innerHTML = cardsHtml;
+
+    // Anomaly table
+    let tblHtml = `<table class="tbl"><thead><tr>
+      <th>Asset</th><th>Type</th><th>Actual (MW)</th><th>Expected (MW)</th><th>Deviation (MW)</th><th>Perf Ratio</th><th>Severity</th>
+    </tr></thead><tbody>`;
+    anomalies.anomalies.forEach(a => {
+      tblHtml += `<tr>
+        <td>${a.asset_name}</td>
+        <td>${a.asset_type}</td>
+        <td>${fmt(a.actual_generation_mw)}</td>
+        <td>${fmt(a.expected_generation_mw)}</td>
+        <td style="color:${a.absolute_deviation_mw < -2 ? 'var(--red)' : 'inherit'}">${fmt(a.absolute_deviation_mw)}</td>
+        <td>${fmt(a.performance_ratio, 3)}</td>
+        <td>${riskBadge(a.severity)}</td>
+      </tr>`;
+    });
+    tblHtml += '</tbody></table>';
+    document.getElementById('anomaly-table').innerHTML = tblHtml;
+  } catch (e) {
+    document.getElementById('asset-cards').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+/* ── Asset Diagnosis ─────────────────────────────────────────────────── */
+async function loadDiagnosis() {
+  const assetId = document.getElementById('asset-select').value;
+  if (!assetId) return;
+  const panel = document.getElementById('diagnosis-panel');
+  panel.innerHTML = '<div class="loading">Analysing…</div>';
+  try {
+    const d = await apiFetch(`/assets/${assetId}/diagnosis`);
+    const sev = d.recommended_inspection ? 'CRITICAL' : (d.unexplained_loss_mw > 2 ? 'WARNING' : 'NORMAL');
+    let html = `
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="stat info"><div class="label">Asset</div><div class="value" style="font-size:16px">${d.asset_id}</div><div class="sub">${d.asset_type}</div></div>
+        <div class="stat ${d.recommended_inspection ? 'crit' : 'ok'}"><div class="label">Inspection?</div><div class="value" style="font-size:16px">${d.recommended_inspection ? 'YES' : 'NO'}</div></div>
+        <div class="stat warn"><div class="label">Unexplained Loss</div><div class="value">${fmt(d.unexplained_loss_mw)}</div><div class="unit">MW</div></div>
+        <div class="stat info"><div class="label">Confidence</div><div class="value">${fmt(d.overall_confidence * 100, 0)}%</div></div>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <h2>Generation</h2>
+          <table class="tbl">
+            <tr><td style="color:var(--muted)">Expected</td><td>${fmt(d.expected_generation_mw)} MW</td></tr>
+            <tr><td style="color:var(--muted)">Actual</td><td>${fmt(d.actual_generation_mw)} MW</td></tr>
+            <tr><td style="color:var(--muted)">Deviation</td><td style="color:${d.deviation_mw < -2 ? 'var(--red)' : 'inherit'}">${fmt(d.deviation_mw)} MW (${fmt(d.deviation_pct * 100, 1)}%)</td></tr>
+            <tr><td style="color:var(--muted)">Weather Explained</td><td>${fmt(d.weather_explained_loss_mw)} MW</td></tr>
+            <tr><td style="color:var(--muted)">Unexplained</td><td style="color:${d.unexplained_loss_mw > 3 ? 'var(--red)' : 'inherit'}">${fmt(d.unexplained_loss_mw)} MW</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h2>Probable Causes</h2>`;
+    if (d.probable_causes.length === 0) {
+      html += `<p style="color:var(--green);font-size:13px;">No anomaly — generation within expected range.</p>`;
+    } else {
+      d.probable_causes.forEach(c => {
+        const pct = (c.confidence * 100).toFixed(0);
+        html += `
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>${c.cause.replace(/_/g,' ')}</span><span style="color:var(--muted)">${pct}%</span>
+            </div>
+            <div style="background:var(--surface);border-radius:3px;height:5px"><div style="height:5px;border-radius:3px;background:var(--accent);width:${pct}%"></div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">${c.description}</div>
+          </div>`;
+      });
+    }
+    html += `</div></div>`;
+    if (d.inspection_notes) {
+      html += `<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:10px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--red)">Inspection Note:</strong> ${d.inspection_notes}</div>`;
+    }
+    panel.innerHTML = html;
+  } catch (e) {
+    panel.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+/* ── Grid Optimisation ───────────────────────────────────────────────── */
+let currentOptScenario = '';
+document.querySelectorAll('#page-grid-opt .scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#page-grid-opt .scenario-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentOptScenario = btn.dataset.scenario;
+    loadOptPage(currentOptScenario);
+  });
+});
+
+const scenarioDescs = { '': 'Live forecast data', A: 'Normal operation — balanced grid', B: 'Demand spike + deficit — BESS + DR activation', C: 'Renewable surplus + asset fault — curtailment analysis' };
+
+async function loadOptPage(scenario) {
+  const path = scenario ? `/optimisation/plan?scenario=${scenario}` : '/optimisation/plan';
+  document.getElementById('opt-table').innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('opt-scenario-desc').textContent = scenarioDescs[scenario] || '';
+  try {
+    const data = await apiFetch(path);
+    const s = data.summary;
+    document.getElementById('opt-deficit').textContent = s.deficit_periods;
+    document.getElementById('opt-surplus').textContent = s.surplus_periods;
+    document.getElementById('opt-bess-dis').textContent = fmt(s.total_bess_discharge_mwh);
+    document.getElementById('opt-backup').textContent = s.backup_required ? 'YES' : 'NO';
+    document.getElementById('opt-backup-stat').className = 'stat ' + (s.backup_required ? 'crit' : 'ok');
+
+    let html = `<table class="tbl"><thead><tr>
+      <th>Time</th><th>Demand (MW)</th><th>Renewable (MW)</th><th>Net Balance (MW)</th><th>BESS Action (MW)</th><th>DR (MW)</th><th>Backup (MW)</th><th>Action</th>
+    </tr></thead><tbody>`;
+    data.results.forEach(r => {
+      const d = new Date(r.timestamp);
+      const t = d.getUTCHours().toString().padStart(2, '0') + ':00';
+      const nb = r.net_balance_mw;
+      const nbColor = nb < -50 ? 'var(--red)' : nb < 0 ? 'var(--orange)' : nb > 50 ? 'var(--green)' : 'inherit';
+      html += `<tr>
+        <td>${t}</td>
+        <td>${fmt(r.demand_mw, 0)}</td>
+        <td>${fmt(r.renewable_mw, 0)}</td>
+        <td style="color:${nbColor}">${fmt(nb, 0)}</td>
+        <td style="color:${r.bess_action_mw < 0 ? 'var(--orange)' : r.bess_action_mw > 0 ? 'var(--green)' : 'inherit'}">${fmt(r.bess_action_mw, 0)}</td>
+        <td>${fmt(r.demand_response_mw, 0)}</td>
+        <td style="color:${r.backup_generation_mw > 0 ? 'var(--red)' : 'inherit'}">${fmt(r.backup_generation_mw, 0)}</td>
+        <td style="font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis">${r.action_taken}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('opt-table').innerHTML = html;
+  } catch (e) {
+    document.getElementById('opt-table').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+/* ── Curtailment ─────────────────────────────────────────────────────── */
+let currentCurtScenario = '';
+document.querySelectorAll('#curt-scenarios .scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#curt-scenarios .scenario-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCurtScenario = btn.dataset.scenario;
+    loadCurtailmentPage(currentCurtScenario);
+  });
+});
+
+async function loadCurtailmentPage(scenario) {
+  const path = scenario ? `/optimisation/curtailment?scenario=${scenario}` : '/optimisation/curtailment';
+  document.getElementById('curt-table').innerHTML = '<div class="loading">Loading…</div>';
+  try {
+    const data = await apiFetch(path);
+    const s = data.summary;
+    document.getElementById('curt-potential').textContent = fmt(s.total_potential_curtailment_mwh);
+    document.getElementById('curt-bess').textContent = fmt(s.total_bess_absorption_mwh);
+    document.getElementById('curt-avoided').textContent = fmt(s.total_avoided_curtailment_mwh);
+    document.getElementById('curt-pct').textContent = fmt(s.curtailment_reduction_pct);
+    document.getElementById('curt-explanation').innerHTML = `<p style="font-size:13px;line-height:1.7;color:var(--text)">${data.explanation}</p>`;
+
+    let html = `<table class="tbl"><thead><tr>
+      <th>Time</th><th>Surplus (MW)</th><th>Potential Curt.</th><th>BESS Abs.</th><th>Flex Load</th><th>Export</th><th>Unavoidable</th><th>Avoided</th>
+    </tr></thead><tbody>`;
+    data.intervals.slice(0, 24).forEach(r => {
+      const d = new Date(r.timestamp);
+      const t = d.getUTCHours().toString().padStart(2, '0') + ':00';
+      html += `<tr>
+        <td>${t}</td>
+        <td>${fmt(r.renewable_surplus_mw)}</td>
+        <td>${fmt(r.potential_curtailment_mw)}</td>
+        <td style="color:var(--green)">${fmt(r.bess_absorption_mw)}</td>
+        <td style="color:var(--green)">${fmt(r.flexible_load_absorption_mw)}</td>
+        <td style="color:var(--accent)">${fmt(r.export_mw)}</td>
+        <td style="color:${r.unavoidable_curtailment_mw > 0 ? 'var(--red)' : 'inherit'}">${fmt(r.unavoidable_curtailment_mw)}</td>
+        <td style="color:var(--green)">${fmt(r.avoided_curtailment_mw)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('curt-table').innerHTML = html;
+  } catch (e) {
+    document.getElementById('curt-table').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+/* ── Bob Advisor ─────────────────────────────────────────────────────── */
+const SUGGESTED = [
+  "What are the grid risks over the next 6 hours?",
+  "Which renewable assets are underperforming and why?",
+  "How can we handle tonight's demand peak?",
+  "How much renewable curtailment can we avoid?",
+  "Generate the operator optimisation brief.",
+  "Diagnose asset SOL-01",
+  "Run scenario B — demand spike analysis",
+];
+
+// Bob calls the GridWise backend tools directly (REST simulation)
+// In a real deployment, Bob would call via the MCP server.
+// Here we simulate Bob by routing to the correct API endpoint.
+const BOB_TOOL_MAP = {
+  "grid risks": () => apiFetch('/grid/risk?horizon_hours=6').then(d => formatRiskResult(d)),
+  "risk": () => apiFetch('/grid/risk?horizon_hours=6').then(d => formatRiskResult(d)),
+  "underperform": () => apiFetch('/assets/anomalies?hours=24&severity=WARNING').then(d => formatAnomalyResult(d)),
+  "anomal": () => apiFetch('/assets/anomalies?hours=24').then(d => formatAnomalyResult(d)),
+  "curtailment": () => apiFetch('/optimisation/curtailment').then(d => formatCurtailmentResult(d)),
+  "brief": () => apiFetch('/brief').then(d => d.full_text),
+  "optimis": () => apiFetch('/optimisation/plan').then(d => formatOptResult(d)),
+  "forecast": () => apiFetch('/forecast/load').then(d => formatForecastResult(d)),
+  "sol-01": () => apiFetch('/assets/SOL-01/diagnosis').then(d => formatDiagResult(d)),
+  "sol-02": () => apiFetch('/assets/SOL-02/diagnosis').then(d => formatDiagResult(d)),
+  "win-01": () => apiFetch('/assets/WIN-01/diagnosis').then(d => formatDiagResult(d)),
+  "scenario b": () => apiFetch('/optimisation/plan?scenario=B').then(d => formatOptResult(d)),
+  "scenario c": () => apiFetch('/optimisation/curtailment?scenario=C').then(d => formatCurtailmentResult(d)),
+  "demand peak": () => apiFetch('/optimisation/plan').then(d => formatOptResult(d)),
+  "peak": () => apiFetch('/forecast/load').then(d => formatForecastResult(d)),
+};
+
+function formatRiskResult(d) {
+  const rows = d.risk_summary;
+  const crit = rows.filter(r => r.risk_level === 'CRITICAL').length;
+  const high = rows.filter(r => r.risk_level === 'HIGH').length;
+  let out = `[RULE-BASED ANALYSIS] Grid Risk — next ${rows.length} hours:\n`;
+  out += `  Critical periods: ${crit}\n  High risk periods: ${high}\n\n`;
+  rows.slice(0, 8).forEach(r => {
+    const h = new Date(r.timestamp).getUTCHours().toString().padStart(2,'0');
+    out += `  ${h}:00  [${r.risk_level}]  ${fmt(r.forecast_load_mw,0)} MW  reserve ${fmt(r.reserve_margin*100,1)}%\n`;
+  });
+  return out;
+}
+function formatAnomalyResult(d) {
+  let out = `[ANOMALY DETECTION] ${d.total_assets} assets analysed:\n  Critical: ${d.assets_in_critical}  Warning: ${d.assets_in_warning}\n\n`;
+  d.anomalies.slice(0, 6).forEach(a => {
+    out += `  [${a.severity}] ${a.asset_name}: actual ${fmt(a.actual_generation_mw)} MW vs expected ${fmt(a.expected_generation_mw)} MW (PR: ${fmt(a.performance_ratio,2)})\n`;
+  });
+  return out;
+}
+function formatCurtailmentResult(d) {
+  const s = d.summary;
+  return `[CURTAILMENT ANALYSIS]\n  Potential: ${s.total_potential_curtailment_mwh} MWh\n  BESS absorbed: ${s.total_bess_absorption_mwh} MWh\n  Avoided: ${s.total_avoided_curtailment_mwh} MWh\n  Reduction: ${s.curtailment_reduction_pct}%\n\n${d.explanation}`;
+}
+function formatOptResult(d) {
+  const s = d.summary;
+  let out = `[OPTIMISATION PLAN] ${s.scenario_name || 'Live'}\n  Deficit periods: ${s.deficit_periods}  Surplus: ${s.surplus_periods}\n  BESS discharge: ${s.total_bess_discharge_mwh} MWh  Charge: ${s.total_bess_charge_mwh} MWh\n  Backup required: ${s.backup_required ? 'YES ⚠️' : 'NO'}\n\nActions (first 8h):\n`;
+  d.results.slice(0,8).forEach(r => {
+    const h = new Date(r.timestamp).getUTCHours().toString().padStart(2,'0');
+    out += `  ${h}:00  net ${fmt(r.net_balance_mw,0)} MW  →  ${r.action_taken}\n`;
+  });
+  return out;
+}
+function formatForecastResult(d) {
+  const loads = d.forecast.map(p => p.forecast_load_mw);
+  const peak = Math.max(...loads);
+  const avg = loads.reduce((a,b)=>a+b,0)/loads.length;
+  const peakH = d.forecast[loads.indexOf(peak)];
+  let out = `[ML FORECAST] 24h Load Forecast:\n  Peak: ${fmt(peak,0)} MW at ${peakH?.timestamp}\n  Average: ${fmt(avg,0)} MW\n`;
+  if (d.model_metrics?.test) out += `  Model R² (test): ${fmt(d.model_metrics.test.r2,3)}\n`;
+  return out;
+}
+function formatDiagResult(d) {
+  let out = `[RCA] ${d.asset_name} (${d.asset_type}):\n  Expected: ${d.expected_generation_mw} MW  Actual: ${d.actual_generation_mw} MW\n  Unexplained loss: ${d.unexplained_loss_mw} MW\n  Inspection recommended: ${d.recommended_inspection ? 'YES' : 'NO'}\n\nProbable causes:\n`;
+  d.probable_causes.forEach(c => { out += `  [${(c.confidence*100).toFixed(0)}%] ${c.cause}: ${c.description}\n`; });
+  return out;
+}
+
+function initBobAdvisor() {
+  const sq = document.getElementById('suggested-queries');
+  sq.innerHTML = '';
+  SUGGESTED.forEach(q => {
+    const btn = document.createElement('button');
+    btn.textContent = q;
+    btn.onclick = () => { document.getElementById('bob-input').value = q; sendBobQuery(); };
+    sq.appendChild(btn);
+  });
+  appendBobMsg('bob', 'Hello, Operator. I am your GridWise AI Advisor.\n\nI can answer questions about grid status, demand forecasts, renewable asset health, optimisation plans, and curtailment.\n\nAll data comes from the GridWise backend — I never fabricate numbers.\n\nTry one of the suggested queries, or type your own question.');
+}
+
+function appendBobMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.textContent = text;
+  const msgs = document.getElementById('bob-msgs');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendBobQuery() {
+  const input = document.getElementById('bob-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  appendBobMsg('user', q);
+
+  const loading = appendBobMsg('bob', '…');
+  loading.classList.add('msg-loading');
+
+  try {
+    // Route to backend tool
+    const qLower = q.toLowerCase();
+    let handler = null;
+    for (const [key, fn] of Object.entries(BOB_TOOL_MAP)) {
+      if (qLower.includes(key)) { handler = fn; break; }
+    }
+    if (!handler) {
+      // Default: try brief
+      handler = () => apiFetch('/brief').then(d => d.full_text.substring(0, 2000) + '\n[... truncated — use "Generate operator brief" for full output]');
+    }
+    const result = await handler();
+    loading.textContent = result;
+    loading.classList.remove('msg-loading');
+  } catch (e) {
+    loading.textContent = 'Error: ' + e.message;
+    loading.classList.add('msg-error');
+    loading.classList.remove('msg-loading');
+  }
+}
+
+document.getElementById('bob-input').addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendBobQuery();
+});
+
+/* ── Operator Brief ──────────────────────────────────────────────────── */
+async function loadBrief(scenario) {
+  const el = document.getElementById('brief-text');
+  el.textContent = 'Generating brief…';
+  try {
+    const path = scenario ? `/brief?scenario=${scenario}` : '/brief';
+    const data = await apiFetch(path);
+    el.textContent = data.full_text;
+  } catch (e) {
+    el.textContent = 'Error: ' + e.message;
+  }
+}
+
+/* ── Initialise ──────────────────────────────────────────────────────── */
+(async () => {
+  await checkHealth();
+  await loadOverview();
+  pageLoaded.overview = true;
+})();
+</script>
+</body>
+</html>

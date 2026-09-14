@@ -1,69 +1,70 @@
-# =============================================================================
-# HACKATHON SUBMISSION METADATA
-# =============================================================================
-# Instructions:
-#   - Fill in ALL required fields (marked with # REQUIRED)
-#   - Optional fields can be left as empty strings ""
-#   - Do NOT rename this file — the evaluation pipeline reads it by name
-#   - Use double quotes around all string values
-# =============================================================================
-
 team:
-  name: ""                             # REQUIRED — e.g., "Orion Squad"
-  track: ""                            # REQUIRED — one of: AI | DevOps | Sustainability | Open
+  name: "Outliers"
+  track: "AI"
   lead:
-    name: ""                           # REQUIRED — e.g., "Alice Chen"
-    email: ""                          # REQUIRED — e.g., "alice.chen@ibm.com"
+    name: "Aryan Vyas"
+    email: "aryan.vyas@ibm.com"
   members:
-    - name: ""                         # REQUIRED — Team member 1
-      email: ""
-    - name: ""                         # Add more members by copying the two lines above
+    - name: "Aryan Vyas"
+      email: "aryan.vyas@ibm.com"
+    - name: ""
       email: ""
     - name: ""
       email: ""
 
 submission:
-  title: ""                            # REQUIRED — Project display name, e.g., "SmartOps Dashboard"
+  title: "GridWise AI — Grid Load Optimisation & Renewable Energy Performance Advisor"
 
-  problem_statement: >                 # REQUIRED — 1-3 sentences. What problem? Who has it?
-    Replace this text with a concise description of the real-world problem
-    your project addresses and who experiences it.
+  problem_statement: >
+    Grid operators must simultaneously forecast electricity demand spikes,
+    understand renewable generation availability, detect underperforming solar and
+    wind assets, identify probable root causes, and minimise renewable curtailment —
+    all in real time and under operational pressure. No existing tool integrates
+    these tasks with conversational AI assistance in one operator interface.
 
-  solution_summary: >                  # REQUIRED — 1-3 sentences. What did you build?
-    Replace this text with a clear description of your solution
-    and how it addresses the problem above.
+  solution_summary: >
+    GridWise AI is a full-stack analytics and optimisation platform that chains
+    XGBoost load forecasting, physics-based renewable generation models, deterministic
+    anomaly detection, evidence-based root cause analysis, and a priority-order BESS and
+    demand-response optimisation engine. IBM Bob is integrated via a custom MCP server
+    exposing nine backend tools, enabling operators to query computed results
+    conversationally and receive structured briefings without fabricated data.
 
-  key_features:                        # REQUIRED — List 3 to 5 specific features you implemented
-    - ""                               # e.g., "Real-time pipeline anomaly detection using watsonx.ai"
-    - ""
-    - ""
-    - ""                               # optional 4th
-    - ""                               # optional 5th
+  key_features:
+    - "XGBoost demand forecast (R2=0.90 test) with leakage-free chronological split and 24h horizon"
+    - "Physics-based solar and wind expected generation with explainable step-by-step model"
+    - "Evidence-based root cause analysis separating weather-explained from unexplained asset losses"
+    - "Priority-order grid optimisation engine (BESS -> DR -> backup) with all SOC constraints enforced"
+    - "IBM Bob MCP server with 9 tools consuming live backend results — no fabricated telemetry"
 
   tech_stack:
-    languages: []                      # REQUIRED — e.g., ["Python", "TypeScript"]
-    frameworks: []                     # e.g., ["FastAPI", "React"]
-    ibm_technologies: []               # e.g., ["watsonx.ai", "IBM Bob", "IBM Cloud Functions"]
-    databases: []                      # e.g., ["PostgreSQL", "Redis"]
-    other: []                          # e.g., ["Docker", "GitHub Actions", "Slack API"]
+    languages: ["Python", "TypeScript", "HTML", "CSS", "JavaScript"]
+    frameworks: ["FastAPI", "XGBoost", "scikit-learn", "pandas", "numpy", "Pydantic"]
+    ibm_technologies: ["IBM Bob", "MCP (Model Context Protocol)"]
+    databases: ["Apache Parquet (via pyarrow)"]
+    other: ["uvicorn", "Node.js", "Zod", "pytest"]
 
-  what_we_are_most_proud_of: >         # Optional but recommended — guides judges to your best work
-    Replace with what aspect of the submission you consider strongest
-    and want judges to pay special attention to.
+  what_we_are_most_proud_of: >
+    The end-to-end evidence chain from raw synthetic telemetry through physics models,
+    anomaly detection, and root cause analysis to a structured operator brief — all
+    accessible to IBM Bob via a custom MCP server that strictly reads computed backend
+    results rather than fabricating any values. The RCA engine correctly distinguishes
+    weather-explained losses (heavy clouds = no fault) from genuinely unexplained losses
+    (clear sky + low output = inspect the inverter), which is a real operational challenge.
 
-  known_limitations: >                 # Optional but recommended — be honest about gaps
-    Replace with any known limitations, incomplete features,
-    or shortcuts taken due to time constraints.
+  known_limitations: >
+    All data is synthetic and not real grid telemetry. The load forecast is trained on
+    synthetic data only. Economic dispatch and market price signals are not modelled.
+    BESS optimisation is forward-greedy per interval, not multi-day rolling. The Bob
+    advisor routes queries by keyword matching in the dashboard UI; full LLM tool-call
+    chaining requires the MCP server to be running alongside the API. Authentication
+    and multi-user support are not implemented. No CI/CD pipeline.
 
-# =============================================================================
-# ARTIFACT LOCATIONS
-# These paths are relative to the repo root. Only change if you moved files.
-# =============================================================================
 artifacts:
   source_code: "src/"
   setup_guide: "docs/setup-guide.md"
   architecture_doc: "docs/architecture.md"
-  demo_video: "demo/demo-video-link.txt"   # URL to hosted video (YouTube, Loom, Box)
-  live_demo: "demo/live-demo-url.txt"      # URL to deployed demo (optional)
+  demo_video: "demo/demo-video-link.txt"
+  live_demo: "demo/live-demo-url.txt"
   screenshots: "demo/screenshots/"
   presentation: "presentation/"

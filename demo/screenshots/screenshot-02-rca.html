@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GridWise AI — Screenshot 2: Asset Diagnosis (SOL-02)</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
+  .note { color: #d29922; font-size: 11px; background: rgba(210,153,34,.1); padding: 6px 12px; border-radius: 4px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .stat { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .stat .label { font-size: 11px; color: #8b949e; text-transform: uppercase; }
+  .stat .value { font-size: 22px; font-weight: 700; margin: 4px 0; }
+  .crit .value { color: #f85149; }
+  .ok .value { color: #3fb950; }
+  .warn .value { color: #d29922; }
+  .info .value { color: #388bfd; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card h2 { font-size: 12px; font-weight: 600; color: #8b949e; text-transform: uppercase; margin-bottom: 12px; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl td { padding: 8px 10px; border-bottom: 1px solid rgba(48,54,61,.5); }
+  .tbl td:first-child { color: #8b949e; }
+  .bar { height: 5px; border-radius: 3px; background: #21262d; margin-top: 4px; }
+  .bar-fill { height: 5px; border-radius: 3px; }
+  .cause { margin-bottom: 12px; }
+  .cause .name { font-size: 13px; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .cause .desc { font-size: 11px; color: #8b949e; margin-top: 3px; }
+  .alert { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.3); border-radius: 6px; padding: 10px; font-size: 12px; color: #8b949e; margin-top: 12px; }
+  .badge-rca { font-size: 10px; background: rgba(63,185,80,.12); color: #3fb950; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .caption { text-align: center; color: #8b949e; font-size: 12px; margin-top: 20px; padding: 12px; background: #161b22; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="note">SCREENSHOT 2 of 3 — Asset Root Cause Analysis. All values are SYNTHETIC/DEMO data.</div>
+
+<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:16px">
+  <h2 style="font-size:13px;font-weight:600;color:#8b949e;text-transform:uppercase;margin:0 0 12px">
+    Asset Root Cause Analysis <span class="badge-rca">HEURISTIC RCA</span>
+  </h2>
+  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+    <span style="font-size:12px;color:#8b949e">Asset:</span>
+    <span style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:5px 10px;border-radius:6px;font-size:13px">SOL-02 — Sunfield Beta</span>
+    <span style="background:#388bfd;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:13px">Diagnose</span>
+  </div>
+</div>
+
+<div class="grid-4">
+  <div class="stat info"><div class="label">Asset</div><div class="value" style="font-size:16px">SOL-02</div><div style="font-size:11px;color:#8b949e">solar</div></div>
+  <div class="stat crit"><div class="label">Inspection?</div><div class="value" style="font-size:16px">YES</div></div>
+  <div class="stat warn"><div class="label">Unexplained Loss</div><div class="value">49.8</div><div style="font-size:11px;color:#8b949e">MW</div></div>
+  <div class="stat info"><div class="label">Confidence</div><div class="value">52%</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Generation</h2>
+    <table class="tbl">
+      <tr><td>Expected</td><td>63.0 MW</td></tr>
+      <tr><td>Actual</td><td style="color:#f85149">11.5 MW</td></tr>
+      <tr><td>Deviation</td><td style="color:#f85149">-51.5 MW (-81.7%)</td></tr>
+      <tr><td>Weather Explained</td><td>1.7 MW</td></tr>
+      <tr><td>Unexplained</td><td style="color:#f85149;font-weight:600">49.8 MW</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Probable Causes <span class="badge-rca">NOT MEASURED — HEURISTIC</span></h2>
+
+    <div class="cause">
+      <div class="name"><span>temperature derating</span><span style="color:#8b949e">85%</span></div>
+      <div class="bar"><div class="bar-fill" style="width:85%;background:#388bfd"></div></div>
+      <div class="desc">High ambient temperature (34.0°C) causes module derating (~4.1% reduction). Est. loss: 2.11 MW.</div>
+    </div>
+
+    <div class="cause">
+      <div class="name"><span>inverter or string issue</span><span style="color:#8b949e">52%</span></div>
+      <div class="bar"><div class="bar-fill" style="width:52%;background:#d29922"></div></div>
+      <div class="desc">Unexplained generation loss of 49.8 MW (perf ratio 0.18) suggests possible inverter failure, string disconnection, or soiling.</div>
+    </div>
+
+    <div class="alert">
+      <strong style="color:#f85149">Inspection Note:</strong> Unexplained loss of 49.8 MW warrants on-site inspection.
+    </div>
+  </div>
+</div>
+
+<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:10px;font-size:12px;color:#8b949e;margin-top:12px">
+  <strong style="color:#f85149">KEY FINDING:</strong> Clear sky (8% cloud cover, 950 W/m² irradiance) — no weather excuse for low output.
+  Performance ratio = 0.18 (18% of expected). Weather explains only 1.7 MW of the 51.5 MW deviation.
+  The remaining 49.8 MW is unexplained and consistent with inverter or string failure.
+</div>
+
+<div class="caption">
+  GridWise AI — Asset Diagnosis Page<br>
+  Screenshot 2: SOL-02 RCA — clear sky day, inverter fault suspected, 49.8 MW unexplained loss<br>
+  Data Type: HEURISTIC RULE-BASED RCA — not a mechanical certainty | SYNTHETIC/DEMO data
+</div>
+</body>
+</html>

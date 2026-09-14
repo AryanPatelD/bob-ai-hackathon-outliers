@@ -94,3 +94,9 @@ logs/
 .terraform/
 *.tfstate
 *.tfstate.backup
+
+# GridWise AI generated data
+src/data/synthetic/*.parquet
+src/ml/saved_models/*.json
+src/bob_mcp/node_modules/
+src/bob_mcp/build/

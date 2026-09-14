@@ -1,26 +1,26 @@
 team:
   name: "Outliers"
-  track: "AI"
+  track: "U2 Grid Load Optimisation & Renewable Energy Performance Advisor"
   lead:
-    name: "Aryan Vyas"
-    email: "aryan.vyas@ibm.com"
+    name: "Smit Bhalani"
+    email: "d25ce143@charusat.edu.in"
   members:
-    - name: "Aryan Vyas"
-      email: "aryan.vyas@ibm.com"
-    - name: ""
-      email: ""
-    - name: ""
-      email: ""
+    - name: "Chaitya vakani"
+      email: "d25ce152.charusat.edu.in"
+    - name: "Aryan Patel"
+      email: "d25ce158.charusat.edu.in"
+    - name: "Vedant Bhatt"
+      email: "d25ce169.charusat.edu.in"
 
 submission:
   title: "GridWise AI — Grid Load Optimisation & Renewable Energy Performance Advisor"
 
   problem_statement: >
-    Grid operators must simultaneously forecast electricity demand spikes,
-    understand renewable generation availability, detect underperforming solar and
-    wind assets, identify probable root causes, and minimise renewable curtailment —
-    all in real time and under operational pressure. No existing tool integrates
-    these tasks with conversational AI assistance in one operator interface.
+    The US curtailed ~8 TWh of clean energy in 2023 — renewable electricity switched off
+    because the grid couldn't absorb it. At the same time, unexpected demand spikes cause
+    grid instability. Operators must forecast load spikes, balance renewable generation, and
+    detect underperforming solar/wind assets simultaneously — with very limited real-time
+    decision support today.
 
   solution_summary: >
     GridWise AI is a full-stack analytics and optimisation platform that chains

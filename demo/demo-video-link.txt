@@ -1,13 +1,9 @@
-# Demo Video
+https://youtu.be/0qGBQMT4sIo
 
-A demo video for GridWise AI will be recorded and hosted.
-
-To record the demo:
-1. Start the API: uvicorn src.backend.main:app --port 8000 --reload
-2. Open the dashboard: http://localhost:8000/dashboard
-3. Walk through Scenario B (demand spike) and Scenario D (combined)
-4. Ask Bob: "Generate the operator optimisation brief"
-
-Suggested hosting: YouTube (unlisted) or Loom
-
-Demo video URL: [To be added before submission]
+# GridWise AI — Official Demo Video
+- **Project**: GridWise AI — Grid Load Optimisation & Renewable Energy Performance Advisor
+- **Hackathon**: IBM Bob AI Innovation Hackathon 2026 (AI Track - Problem Statement U2)
+- **Team**: Outliers (Smit Bhalani, Aryan Patel, Chaitya Vakani, Vedant Bhatt)
+- **YouTube Link**: https://youtu.be/0qGBQMT4sIo
+- **Duration**: ~4.5 minutes
+- **Walkthrough**: Landing Page, 24h ML Load Forecast, Fleet Anomaly Detection, Asset Diagnostic RCA, Grid Balancing & BESS Dispatch, and IBM Bob MCP AI Advisor.

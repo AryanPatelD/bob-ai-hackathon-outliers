@@ -16,7 +16,9 @@
 | Member | **Aryan Patel** |
 | Member | **Vedant Bhatt** |
 
-**Problem Statement:** U2 — Grid Load Optimisation & Renewable Energy Performance Advisor
+**Problem Statement:** U2 — Grid Load Optimisation & Renewable Energy Performance Advisor  
+**📺 Official Demo Video:** [https://youtu.be/0qGBQMT4sIo](https://youtu.be/0qGBQMT4sIo)  
+**📊 Presentation Deck:** [`presentation/GridWise_AI_Hackathon_Deck_Light.pptx`](presentation/GridWise_AI_Hackathon_Deck_Light.pptx)
 
 ---
 

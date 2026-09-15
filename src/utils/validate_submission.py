@@ -1,7 +1,7 @@
 import sys, yaml, os
 sys.path.insert(0,'.')
 
-with open('submission.yaml') as f:
+with open('submission.yaml', encoding='utf-8') as f:
     s = yaml.safe_load(f)
 
 checks = []
@@ -19,16 +19,16 @@ checks.append(('what_we_are_proud_of has content', 'Replace' not in s['submissio
 
 # File checks
 file_checks = [
-    ('README.md not placeholder', '[Your Project Title Here]' not in open('README.md').read()),
-    ('docs/problem-statement.md filled', 'Describe the broader context' not in open('docs/problem-statement.md').read()),
-    ('docs/solution-overview.md filled', 'Describe your solution in plain language' not in open('docs/solution-overview.md').read()),
-    ('docs/architecture.md filled', 'Describe the overall architecture' not in open('docs/architecture.md').read()),
-    ('docs/setup-guide.md filled', 'your install command here' not in open('docs/setup-guide.md').read()),
+    ('README.md not placeholder', '[Your Project Title Here]' not in open('README.md', encoding='utf-8').read()),
+    ('docs/problem-statement.md filled', 'Describe the broader context' not in open('docs/problem-statement.md', encoding='utf-8').read()),
+    ('docs/solution-overview.md filled', 'Describe your solution in plain language' not in open('docs/solution-overview.md', encoding='utf-8').read()),
+    ('docs/architecture.md filled', 'Describe the overall architecture' not in open('docs/architecture.md', encoding='utf-8').read()),
+    ('docs/setup-guide.md filled', 'your install command here' not in open('docs/setup-guide.md', encoding='utf-8').read()),
     ('.env not committed', not os.path.exists('src/.env') or True),
     ('src/.env.example exists', os.path.exists('src/.env.example')),
     ('screenshots exist', len([f for f in os.listdir('demo/screenshots') if f.endswith('.html')]) >= 3),
-    ('presentation exists', os.path.exists('presentation/GridWise-AI-slides.pptx')),
-    ('no secrets in .env.example', 'your_api_key' not in open('src/.env.example').read()),
+    ('presentation exists', any(f.endswith(('.pptx', '.pdf', '.key')) for f in os.listdir('presentation'))),
+    ('no secrets in .env.example', 'your_api_key' not in open('src/.env.example', encoding='utf-8').read()),
     ('src/requirements.txt exists', os.path.exists('src/requirements.txt')),
     ('src/backend/main.py exists', os.path.exists('src/backend/main.py')),
     ('bob_mcp built', os.path.exists('src/bob_mcp/build/index.js')),

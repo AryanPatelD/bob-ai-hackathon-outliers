@@ -228,7 +228,23 @@ if r: print(f"   Sections: {r['sections']}  Total: {r['chars']} chars")
 # ── 10. API route imports ────────────────────────────────────────────────────
 def test_api_imports():
     from src.backend.main import app
-    routes = {r.path for r in app.routes if hasattr(r,'methods')}
+
+    def _collect_paths(route_list):
+        """Recursively collect all route paths including those in sub-routers."""
+        paths = set()
+        for r in route_list:
+            if hasattr(r, 'methods') and hasattr(r, 'path'):
+                paths.add(r.path)
+            # FastAPI >=0.115 wraps include_router as _IncludedRouter
+            if hasattr(r, 'original_router') and hasattr(r.original_router, 'routes'):
+                paths.update(_collect_paths(r.original_router.routes))
+            elif hasattr(r, 'routes'):
+                paths.update(_collect_paths(r.routes))
+            if hasattr(r, 'app') and hasattr(r.app, 'routes'):
+                paths.update(_collect_paths(r.app.routes))
+        return paths
+
+    routes = _collect_paths(app.routes)
     required = {'/health','/assets','/assets/anomalies','/assets/{asset_id}/diagnosis',
                 '/forecast/load','/forecast/renewables','/grid/risk',
                 '/optimisation/plan','/optimisation/curtailment','/brief','/scenarios','/dashboard','/'}
